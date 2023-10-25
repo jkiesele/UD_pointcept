@@ -12,11 +12,11 @@ from pointcept.engines.defaults import (
 )
 from pointcept.engines.train import Trainer
 from pointcept.engines.launch import launch
+import wandb
 
-
-def main_worker(cfg):
+def main_worker(cfg, local_rank):
     cfg = default_setup(cfg)
-    trainer = Trainer(cfg)
+    trainer = Trainer(cfg,local_rank)
     trainer.train()
 
 
@@ -33,6 +33,7 @@ def main():
         cfg=(cfg,),
     )
 
+    wandb.finish()
 
 if __name__ == "__main__":
     main()

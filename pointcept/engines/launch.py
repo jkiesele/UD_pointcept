@@ -15,7 +15,7 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 
 from pointcept.utils import comm
-
+import wandb
 __all__ = ["DEFAULT_TIMEOUT", "launch"]
 
 DEFAULT_TIMEOUT = timedelta(minutes=30)
@@ -86,7 +86,8 @@ def launch(
             daemon=False,
         )
     else:
-        main_func(*cfg)
+        wandb.init(project="pointcept", dir="/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/")
+        main_func(*cfg, local_rank = 0)
 
 
 def _distributed_worker(
@@ -115,7 +116,8 @@ def _distributed_worker(
         logger = logging.getLogger(__name__)
         logger.error("Process group URL: {}".format(dist_url))
         raise e
-
+    if dist.get_rank() == 0:
+        wandb.init(project="pointcept", dir='/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/')
     # Setup the local process group (which contains ranks within the same machine)
     assert comm._LOCAL_PROCESS_GROUP is None
     num_machines = world_size // num_gpus_per_machine
@@ -134,4 +136,4 @@ def _distributed_worker(
     # See: https://github.com/facebookresearch/maskrcnn-benchmark/issues/172
     comm.synchronize()
 
-    main_func(*cfg)
+    main_func(*cfg, local_rank = local_rank)

@@ -8,7 +8,7 @@ from functools import partial
 import os.path as osp
 import time
 import numpy as np
-
+import torch_cmspepr
 
 """
     Fancy Pulling
@@ -202,7 +202,12 @@ def knn_per_graph(g, sl, k):
     for graph in graphs_list:
         non = graph.number_of_nodes()
         sls_graph = sl[node_counter : node_counter + non]
-        new_graph = dgl.knn_graph(sls_graph, k, exclude_self=True)
+        #new_graph = dgl.knn_graph(sls_graph, k, exclude_self=True)
+        # tic = time.time()
+        edge_index = torch_cmspepr.knn_graph(sls_graph,k=k) #no need to split by batch as we are looping through instances
+        # toc = time.time()
+        # print("time to build the graph inside attention", toc-tic)
+        new_graph = dgl.graph((edge_index[0], edge_index[1]), num_nodes=x.shape[0])
         new_graphs.append(new_graph)
         node_counter = node_counter + non
     return dgl.batch(new_graphs)
@@ -232,16 +237,11 @@ class SendScoresMessage(nn.Module):
     """
     Compute the input feature from neighbors
     """
-
     def __init__(self):
         super(SendScoresMessage, self).__init__()
-
     def forward(self, edges):
-
         score_neigh = edges.src["scores"]
-
         same_object = edges.dst["object"] == edges.src["object"]
-
         return {"score_neigh": score_neigh.view(-1), "same_object": same_object}
 
 
@@ -257,7 +257,6 @@ class FindUpPoints(nn.Module):
     def forward(self, nodes):
         same_object = nodes.mailbox["same_object"]
         scores_neigh = nodes.mailbox["score_neigh"]
-
         # loss per neighbourhood of same object as src node
         values_max, index = torch.max(scores_neigh * same_object, dim=1)
         number_points_same_object = torch.sum(same_object, dim=1)
@@ -508,7 +507,12 @@ class Swin3D(nn.Module):
         list_new = []
         for i in range(0, len(list_graphs)):
             g_i = list_graphs[i]
-            g_i_ = dgl.knn_graph(g_i.ndata["s_l"], 7, exclude_self=True)
+            #g_i_ = dgl.knn_graph(g_i.ndata["s_l"], 7, exclude_self=True)
+            s_li = g_i.ndata["s_l"]
+            tic = time.time()
+            edge_index = torch_cmspepr.knn_graph(s_li,k=7) #no need to split by batch as we are looping through instances
+            toc = time.time()
+            g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             list_new.append(g_i_)
         g = dgl.batch(list_new)
 
@@ -523,9 +527,7 @@ class Swin3D(nn.Module):
         print("loss_ud", loss_ud)
         # find the points with scores higher than 0.5
         # up_points = scores > 0.5
-
         # g.ndata["up_points"] = up_points.view(-1)
-
         # create a unidirected graph with attention to send features
         # this is per graph
         list_graphs = dgl.unbatch(g)
@@ -560,11 +562,11 @@ class Swin3D(nn.Module):
             nodes_down = nodes[~up_points_i]
             # print(s_l_i[up_points_i])
             dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
-
-            indices_connect = torch.sort(dist_to_up, dim=1)[1][
-                :, 0:M_i
-            ]  # take the smallest distance and take first M
-
+            #indices_connect = torch.sort(dist_to_up, dim=1)[1][
+            #     :, 0:M_i
+            # ]  
+            # take the smallest distance and take first M
+            indices_connect = torch.topk(dist_to_up,k = M_i, dim=1)[1]
             j = nodes_up[indices_connect]
             j = j.view(-1)
             i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)

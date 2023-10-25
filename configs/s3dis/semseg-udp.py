@@ -3,11 +3,11 @@ _base_ = ["../_base_/default_runtime.py"]
 batch_size = 1  # bs: total bs in all gpus
 mix_prob = 0
 empty_cache = False
-enable_amp = True
+enable_amp = False
 
 # model settings
 model = dict(
-    type="DefaultSegmentor",
+    type="DefaultSegmentor_plus_UDloss",
     backbone=dict(
         type="FP"
     ),

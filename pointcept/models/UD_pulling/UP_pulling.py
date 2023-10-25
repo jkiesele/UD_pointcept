@@ -25,7 +25,7 @@ from pointcept.models.builder import MODELS
 from pointcept.models.utils import offset2batch, batch2offset
 from pointcept.models.UD_pulling.tools import Swin3D, MLPReadout
 from pointcept.models.utils import offset2batch, batch2offset
-
+import torch_cmspepr
 
 
 @MODELS.register_module("FP")
@@ -69,6 +69,7 @@ class FancyNet(nn.Module):
         offset = data_dict["offset"].int()
         object = data_dict["segment"]
         batch = offset2batch(offset)
+        print("shape", coord.shape)
         g = build_graph(batch, coord)
         print("graph is built")
         # a batch of point cloud is a list of coord, feat and offset
@@ -124,7 +125,7 @@ class FancyNet(nn.Module):
         all_resolutions = torch.concat(full_res_features, dim=1)
         h_out = self.MLP_layer(all_resolutions)
 
-        return h_out
+        return h_out, loss_ud
 
     def push_info_down(self, features, i, j):
         # feed information back down averaging the information of the upcoming uppoints
@@ -138,12 +139,18 @@ class FancyNet(nn.Module):
         return h_up_down
 
 def build_graph(batch, coord):
+    import time
     unique_instances = torch.unique(batch).view(-1)
     list_graphs = []
     for instance in unique_instances:
         mask = batch == instance
         x = coord[mask]
-        knn_g = dgl.knn_graph(x, 3)
+        #knn_g = dgl.knn_graph(x, 3)
+        # tic = time.time()
+        edge_index = torch_cmspepr.knn_graph(x,k=3) #no need to split by batch as we are looping through instances
+        # toc = time.time()
+        # print("time to build the graph", toc-tic)
+        knn_g = dgl.graph((edge_index[0], edge_index[1]), num_nodes=x.shape[0])
         list_graphs.append(knn_g)
     g = dgl.batch(list_graphs)
     return g

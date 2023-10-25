@@ -5,7 +5,7 @@ from .default import DefaultSegmentor, DefaultClassifier
 from .sparse_unet import *
 from .point_transformer import *
 from .point_transformer_v2 import *
-
+from .UD_pulling import *
 # from .stratified_transformer import *
 # from .spvcnn import *
 # from .octformer import *

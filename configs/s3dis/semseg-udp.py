@@ -1,7 +1,7 @@
 _base_ = ["../_base_/default_runtime.py"]
 # misc custom setting
-batch_size = 12  # bs: total bs in all gpus
-mix_prob = 0.8
+batch_size = 1  # bs: total bs in all gpus
+mix_prob = 0
 empty_cache = False
 enable_amp = True
 
@@ -9,29 +9,7 @@ enable_amp = True
 model = dict(
     type="DefaultSegmentor",
     backbone=dict(
-        type="PT-v2m2",
-        in_channels=6,
-        num_classes=13,
-        patch_embed_depth=2,
-        patch_embed_channels=48,
-        patch_embed_groups=6,
-        patch_embed_neighbours=16,
-        enc_depths=(2, 6, 2),
-        enc_channels=(96, 192, 384),
-        enc_groups=(12, 24, 48),
-        enc_neighbours=(16, 16, 16),
-        dec_depths=(1, 1, 1),
-        dec_channels=(48, 96, 192),
-        dec_groups=(6, 12, 24),
-        dec_neighbours=(16, 16, 16),
-        grid_sizes=(0.1, 0.2, 0.4),
-        attn_qkv_bias=True,
-        pe_multiplier=False,
-        pe_bias=True,
-        attn_drop_rate=0.0,
-        drop_path_rate=0.3,
-        enable_checkpoint=False,
-        unpool_backend="interp",  # map / interp
+        type="FP"
     ),
     criteria=[dict(type="CrossEntropyLoss", loss_weight=1.0, ignore_index=-1)],
 )

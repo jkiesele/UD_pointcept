@@ -114,7 +114,6 @@ class Trainer(TrainerBase):
         super(Trainer, self).__init__()
         self.epoch = 0
         self.start_epoch = 0
-        self.local_rank = local_rank
         self.max_epoch = cfg.eval_epoch
         self.best_metric_value = -torch.inf
         self.logger = get_root_logger(
@@ -127,7 +126,6 @@ class Trainer(TrainerBase):
         self.logger.info(f"Config:\n{cfg.pretty_text}")
         self.logger.info("=> Building model ...")
         self.model = self.build_model()
-        self.model.local_rank = local_rank
         self.logger.info("=> Building writer ...")
         self.writer = self.build_writer()
         self.logger.info("=> Building train dataset & dataloader ...")

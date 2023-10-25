@@ -126,6 +126,9 @@ conda install h5py pyyaml -c anaconda -y
 conda install sharedarray tensorboard tensorboardx yapf addict einops scipy plyfile termcolor timm -c conda-forge -y
 conda install pytorch-cluster pytorch-scatter pytorch-sparse -c pyg -y
 pip install torch-geometric
+# Packages needed on top of classic Pointcept installation
+conda install -c dglteam/label/cu117 dgl
+pip install wandb
 
 # spconv (SparseUNet)
 # refer https://github.com/traveller59/spconv

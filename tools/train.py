@@ -14,9 +14,9 @@ from pointcept.engines.train import Trainer
 from pointcept.engines.launch import launch
 import wandb
 
-def main_worker(cfg, local_rank):
+def main_worker(cfg):
     cfg = default_setup(cfg)
-    trainer = Trainer(cfg,local_rank)
+    trainer = Trainer(cfg)
     trainer.train()
 
 

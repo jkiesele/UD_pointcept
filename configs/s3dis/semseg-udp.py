@@ -8,9 +8,7 @@ enable_amp = False
 # model settings
 model = dict(
     type="DefaultSegmentor_plus_UDloss",
-    backbone=dict(
-        type="FP"
-    ),
+    backbone=dict(type="FP"),
     criteria=[dict(type="CrossEntropyLoss", loss_weight=1.0, ignore_index=-1)],
 )
 
@@ -43,7 +41,7 @@ data = dict(
     ],
     train=dict(
         type=dataset_type,
-        split=("Area_1"), # "Area_2", "Area_3", "Area_4", "Area_6"
+        split=("Area_1"),  # "Area_2", "Area_3", "Area_4", "Area_6"
         data_root=data_root,
         transform=[
             dict(type="CenterShift", apply_z=True),

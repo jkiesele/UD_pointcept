@@ -110,7 +110,7 @@ class TrainerBase:
 
 
 class Trainer(TrainerBase):
-    def __init__(self, cfg, local_rank):
+    def __init__(self, cfg):
         super(Trainer, self).__init__()
         self.epoch = 0
         self.start_epoch = 0

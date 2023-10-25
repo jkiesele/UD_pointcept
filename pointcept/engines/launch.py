@@ -120,11 +120,6 @@ def _distributed_worker(
         logger = logging.getLogger(__name__)
         logger.error("Process group URL: {}".format(dist_url))
         raise e
-    if dist.get_rank() == 0:
-        wandb.init(
-            project="pointcept",
-            dir="/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/",
-        )
     # Setup the local process group (which contains ranks within the same machine)
     assert comm._LOCAL_PROCESS_GROUP is None
     num_machines = world_size // num_gpus_per_machine
@@ -138,9 +133,15 @@ def _distributed_worker(
 
     assert num_gpus_per_machine <= torch.cuda.device_count()
     torch.cuda.set_device(local_rank)
-
+    if dist.get_rank() == 0:
+        wandb.init(
+            project="pointcept",
+            dir="/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/",
+        )
     # synchronize is needed here to prevent a possible timeout after calling init_process_group
     # See: https://github.com/facebookresearch/maskrcnn-benchmark/issues/172
     comm.synchronize()
 
     main_func(*cfg)
+
+    wandb.finish()

@@ -69,9 +69,9 @@ class FancyNet(nn.Module):
         offset = data_dict["offset"].int()
         object = data_dict["segment"]
         batch = offset2batch(offset)
-        print("shape", coord.shape)
+        # print("shape", coord.shape)
         g = build_graph(batch, coord)
-        print("graph is built")
+        # print("graph is built")
         # a batch of point cloud is a list of coord, feat and offset
         g.ndata["h"] = feat
         g.ndata["c"] = coord
@@ -125,7 +125,7 @@ class FancyNet(nn.Module):
         all_resolutions = torch.concat(full_res_features, dim=1)
         h_out = self.MLP_layer(all_resolutions)
 
-        return h_out, loss_ud
+        return h_out, losses
 
     def push_info_down(self, features, i, j):
         # feed information back down averaging the information of the upcoming uppoints
@@ -138,16 +138,20 @@ class FancyNet(nn.Module):
         # g connected down is the highest resolution graph with mean features of the up nodes
         return h_up_down
 
+
 def build_graph(batch, coord):
     import time
+
     unique_instances = torch.unique(batch).view(-1)
     list_graphs = []
     for instance in unique_instances:
         mask = batch == instance
         x = coord[mask]
-        #knn_g = dgl.knn_graph(x, 3)
+        # knn_g = dgl.knn_graph(x, 3)
         # tic = time.time()
-        edge_index = torch_cmspepr.knn_graph(x,k=3) #no need to split by batch as we are looping through instances
+        edge_index = torch_cmspepr.knn_graph(
+            x, k=3
+        )  # no need to split by batch as we are looping through instances
         # toc = time.time()
         # print("time to build the graph", toc-tic)
         knn_g = dgl.graph((edge_index[0], edge_index[1]), num_nodes=x.shape[0])

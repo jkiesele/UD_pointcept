@@ -65,7 +65,7 @@ data = dict(
     ],
     train=dict(
         type=dataset_type,
-        split=("Area_1"), # "Area_2", "Area_3", "Area_4", "Area_6"
+        split=("Area_1", "Area_2", "Area_3", "Area_4", "Area_6"),
         data_root=data_root,
         transform=[
             dict(type="CenterShift", apply_z=True),
@@ -107,7 +107,7 @@ data = dict(
     ),
     val=dict(
         type=dataset_type,
-        split="Area_5",
+        split=("Area_1"),
         data_root=data_root,
         transform=[
             dict(type="CenterShift", apply_z=True),

@@ -16,6 +16,7 @@ from pointcept.utils.misc import intersection_and_union_gpu
 
 from .default import HookBase
 from .builder import HOOKS
+import wandb
 
 
 @HOOKS.register_module()
@@ -162,6 +163,8 @@ class SemSegEvaluator(HookBase):
                     iter=i + 1, max_iter=len(self.trainer.val_loader), loss=loss.item()
                 )
             )
+            if comm.get_local_rank() == 0:
+                wandb.log({"loss evaluation ": loss.item()})
         loss_avg = self.trainer.storage.history("val_loss").avg
         intersection = self.trainer.storage.history("val_intersection").total
         union = self.trainer.storage.history("val_union").total
@@ -176,6 +179,11 @@ class SemSegEvaluator(HookBase):
                 m_iou, m_acc, all_acc
             )
         )
+        if comm.get_local_rank() == 0:
+            wandb.log(
+                {"loss mIoU ": m_iou, "loss mAcc ": m_acc, "loss allAcc ": all_acc}
+            )
+
         for i in range(self.trainer.cfg.data.num_classes):
             self.trainer.logger.info(
                 "Class_{idx}-{name} Result: iou/accuracy {iou:.4f}/{accuracy:.4f}".format(
@@ -185,6 +193,22 @@ class SemSegEvaluator(HookBase):
                     accuracy=acc_class[i],
                 )
             )
+            if comm.get_local_rank() == 0:
+                wandb.log(
+                    {
+                        "Class_{idx}-{name} Result: iou".format(
+                            idx=i, name=self.trainer.cfg.data.names[i]
+                        ): iou_class[i]
+                    }
+                )
+                wandb.log(
+                    {
+                        "Class_{idx}-{name} Result: accuracy".format(
+                            idx=i, name=self.trainer.cfg.data.names[i]
+                        ): acc_class[i]
+                    }
+                )
+
         current_epoch = self.trainer.epoch + 1
         if self.trainer.writer is not None:
             self.trainer.writer.add_scalar("val/loss", loss_avg, current_epoch)

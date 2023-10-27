@@ -144,6 +144,7 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.u_mul_e("V_h", "score", "V_h"),
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
+        print(g.edata["score"].shape)
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1
@@ -164,7 +165,7 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
         if self.possible_empty:
-            print(g.ndata["wV"].shape, g.ndata["z"].shape)
+            print(g.ndata["wV"].shape, g.ndata["z"].shape, g.ndata["z"].device)
             g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
             mask_empty = g.ndata["z"] > 0
             head_out = g.ndata["wV"]

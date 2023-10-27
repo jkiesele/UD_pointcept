@@ -620,4 +620,5 @@ class Swin3D(nn.Module):
             print("i", features.shape)
             features = conv(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0)
+        print(features.shape)
         return features, up_points, new_graphs_up, loss_ud, i, j

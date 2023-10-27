@@ -64,6 +64,7 @@ class MultiHeadAttentionLayer(nn.Module):
         g.apply_edges(scaled_exp("score", np.sqrt(self.out_dim)))
         # Send weighted values to target nodes
         eids = g.edges()
+        print(g.ndata["V_h"].shape, g.edata["score"].shape)
         g.send_and_recv(
             eids,
             fn.u_mul_e("V_h", "score", "V_h"),
@@ -534,7 +535,8 @@ class Swin3D(nn.Module):
         ## add message passing between up points.
         features_up = features.clone()[up_points]
         new_graphs_up.ndata["features_up"] = features_up
-        for conv in self.layers_message_passing:
+        for ii, conv in enumerate(self.layers_message_passing):
+            print(ii)
             features_up = conv(new_graphs_up, features_up)
         features[up_points] = features_up
         return features, up_points, new_graphs_up, loss_ud, i, j

@@ -136,10 +136,7 @@ class MultiHeadAttentionLayer(nn.Module):
     def propagate_attention(self, g):
         # Compute attention score
         g.apply_edges(src_dot_dst("K_h", "Q_h", "score"))  # , edges)
-        print(g.edata["score"].shape)
         g.apply_edges(scaled_exp("score", np.sqrt(self.out_dim)))
-        print(g.edata["score"].shape, "Score 2")
-        print("vhhhh", g.ndata["V_h"].shape)
         # Send weighted values to target nodes
         eids = g.edges()
         g.send_and_recv(
@@ -147,12 +144,9 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.u_mul_e("V_h", "score", "V_h"),
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
-        print("got to here")
-        print("scores ", g.edata["score"].shape)
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1
-        print("scores z ", g.ndata["z"].shape)
         # print("wV ", g.ndata["wV"])
 
     def forward(self, g, h):
@@ -169,10 +163,8 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["K_h"] = K_h.view(-1, self.num_heads, self.out_dim)
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
-        print("finished propagating attention")
         # g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
         # mask_empty = g.ndata["z"] > 0
-
         # head_out = g.ndata["wV"]
         # head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
         head_out = g.ndata["wV"] / g.ndata["z"]

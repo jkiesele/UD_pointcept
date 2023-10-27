@@ -91,111 +91,6 @@ class MultiHeadAttentionLayer(nn.Module):
         return head_out
 
 
-class GraphTransformerLayer(nn.Module):
-    """
-    Param:
-    """
-
-    def __init__(
-        self,
-        in_dim,
-        out_dim,
-        num_heads,
-        k,
-        dropout=0.0,
-        layer_norm=False,
-        batch_norm=True,
-        residual=True,
-        use_bias=False,
-    ):
-        super().__init__()
-        self.k = k
-        self.in_channels = in_dim
-        self.out_channels = out_dim
-        self.num_heads = num_heads
-        self.dropout = dropout
-        self.residual = residual
-        self.layer_norm = layer_norm
-        self.batch_norm = batch_norm
-
-        self.attention = MultiHeadAttentionLayer(
-            in_dim, out_dim // num_heads, num_heads, use_bias
-        )
-
-        self.O = nn.Linear(out_dim, out_dim)
-
-        if self.layer_norm:
-            self.layer_norm1 = nn.LayerNorm(out_dim)
-
-        if self.batch_norm:
-            self.batch_norm1 = nn.BatchNorm1d(out_dim)
-
-        # FFN
-        self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
-        self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
-
-        if self.layer_norm:
-            self.layer_norm2 = nn.LayerNorm(out_dim)
-
-        if self.batch_norm:
-            self.batch_norm2 = nn.BatchNorm1d(out_dim)
-
-        space_dimensions = 3
-        self.lin_s = nn.Linear(in_dim, space_dimensions, bias=False)
-
-    def forward(self, g, h):
-        h_in1 = h  # for first residual connection
-
-        s_l = self.lin_s(h)
-        device = s_l.device
-        g = knn_per_graph(g, s_l, self.k)
-
-        # multi-head attention out
-        attn_out = self.attention(g, h)
-        h = attn_out.view(-1, self.out_channels)
-
-        h = F.dropout(h, self.dropout, training=self.training)
-
-        h = self.O(h)
-
-        if self.residual:
-            h = h_in1 + h  # residual connection
-
-        if self.layer_norm:
-            h = self.layer_norm1(h)
-
-        if self.batch_norm:
-            h = self.batch_norm1(h)
-
-        h_in2 = h  # for second residual connection
-
-        # FFN
-        h = self.FFN_layer1(h)
-        h = F.relu(h)
-        h = F.dropout(h, self.dropout, training=self.training)
-        h = self.FFN_layer2(h)
-
-        if self.residual:
-            h = h_in2 + h  # residual connection
-
-        if self.layer_norm:
-            h = self.layer_norm2(h)
-
-        if self.batch_norm:
-            h = self.batch_norm2(h)
-
-        return h
-
-    def __repr__(self):
-        return "{}(in_channels={}, out_channels={}, heads={}, residual={})".format(
-            self.__class__.__name__,
-            self.in_channels,
-            self.out_channels,
-            self.num_heads,
-            self.residual,
-        )
-
-
 def knn_per_graph(g, sl, k):
     graphs_list = dgl.unbatch(g)
     node_counter = 0
@@ -210,7 +105,9 @@ def knn_per_graph(g, sl, k):
         )  # no need to split by batch as we are looping through instances
         # toc = time.time()
         # print("time to build the graph inside attention", toc-tic)
-        new_graph = dgl.graph((edge_index[0], edge_index[1]), num_nodes=x.shape[0])
+        new_graph = dgl.graph(
+            (edge_index[0], edge_index[1]), num_nodes=sls_graph.shape[0]
+        )
         new_graphs.append(new_graph)
         node_counter = node_counter + non
     return dgl.batch(new_graphs)
@@ -492,7 +389,7 @@ class Swin3D(nn.Module):
         self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        n_layers = 4
+        n_layers = 2
         self.attention_layer = GraphTransformerLayer(
             hidden_dim,
             hidden_dim,
@@ -501,6 +398,20 @@ class Swin3D(nn.Module):
             self.layer_norm,
             self.batch_norm,
             self.residual,
+        )
+        self.layers_message_passing = nn.ModuleList(
+            [
+                GraphTransformerLayer(
+                    hidden_dim,
+                    hidden_dim,
+                    num_heads,
+                    dropout,
+                    self.layer_norm,
+                    self.batch_norm,
+                    self.residual,
+                )
+                for zz in range(n_layers)
+            ]
         )
 
     def forward(self, g, h, c):
@@ -599,9 +510,16 @@ class Swin3D(nn.Module):
             g_i.ndata["object"] = graph_i.ndata["object"]
             # find index in original numbering
             new_graphs.append(g_i)
-            graph_up = dgl.DGLGraph().to(device)
-            graph_up.add_nodes(len(nodes_up))
+            edge_index = torch_cmspepr.knn_graph(s_l_i[up_points_i], k=7)
+            graph_up = dgl.graph(
+                (edge_index[0], edge_index[1]), num_nodes=len(nodes_up)
+            ).to(device)
+            # use this way if no message passing between nodes
+            # graph_up = dgl.DGLGraph().to(device)
+            # graph_up.add_nodes(len(nodes_up))
             graph_up.ndata["object"] = g_i.ndata["object"][up_points_i]
+
+            # add knn in graphs up to do message passing after
             new_graphs_up.append(graph_up)
 
         g_connected_to_up = dgl.batch(new_graphs)
@@ -612,6 +530,13 @@ class Swin3D(nn.Module):
         features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.attention_layer(g_connected_to_up, features)
-        up_points = torch.concat(up_points, dim=0)
 
+        ## add message passing between up points.
+        features_up = features.clone()[up_points_i]
+        new_graphs_up.ndata["features_up"] = features_up
+        for conv in self.layers_message_passing:
+            features_up = conv(new_graphs_up, features_up)
+        features[up_points] = features_up
+
+        up_points = torch.concat(up_points, dim=0)
         return features, up_points, new_graphs_up, loss_ud, i, j

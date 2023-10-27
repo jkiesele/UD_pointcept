@@ -276,7 +276,10 @@ class FindUpPoints(nn.Module):
         sum_same_object = torch.sum(scores_neigh * same_object, dim=1) - values_max
         # print("sum_same_object", sum_same_object)
         mask_ = number_points_same_object > 0
-        loss_d = 1 / number_points_same_object[mask_] * sum_same_object[mask_]
+        if torch.sum(mask_) > 0:
+            loss_d = 1 / number_points_same_object[mask_] * sum_same_object[mask_]
+        else:
+            loss_d = (loss_u + 1) * 100
         # print("sum neigh", loss_u[mask_] + loss_d)
         total_loss_ud = torch.mean(loss_u[mask_] + loss_d)  # per neigh measure
         # print("total_loss_ud", total_loss_ud)
@@ -474,7 +477,7 @@ class Swin3D(nn.Module):
         self.find_up = FindUpPoints()
         self.embedding_scores = nn.Linear(in_dim_node, 1)  # node feat is an integer
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = True
+        self.funky_coordinate_space = False
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3

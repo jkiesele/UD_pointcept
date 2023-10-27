@@ -118,9 +118,9 @@ class FindUpPoints(nn.Module):
 
 
 class MultiHeadAttentionLayer(nn.Module):
-    def __init__(self, in_dim, out_dim, num_heads, use_bias):
+    def __init__(self, in_dim, out_dim, num_heads, use_bias, possible_empty):
         super().__init__()
-
+        self.possible_empty = possible_empty
         self.out_dim = out_dim
         self.num_heads = num_heads
 
@@ -163,11 +163,13 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["K_h"] = K_h.view(-1, self.num_heads, self.out_dim)
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
-        # g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
-        # mask_empty = g.ndata["z"] > 0
-        # head_out = g.ndata["wV"]
-        # head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
-        head_out = g.ndata["wV"] / g.ndata["z"]
+        if self.possible_empty:
+            g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
+            mask_empty = g.ndata["z"] > 0
+            head_out = g.ndata["wV"]
+            head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
+        else:
+            head_out = g.ndata["wV"] / g.ndata["z"]
         return head_out
 
 
@@ -205,6 +207,7 @@ class GraphTransformerLayer(nn.Module):
         batch_norm=True,
         residual=True,
         use_bias=False,
+        possible_empty=False,
     ):
         super().__init__()
 
@@ -215,9 +218,10 @@ class GraphTransformerLayer(nn.Module):
         self.residual = residual
         self.layer_norm = layer_norm
         self.batch_norm = batch_norm
+        self.possible_empty = possible_empty
 
         self.attention = MultiHeadAttentionLayer(
-            in_dim, out_dim // num_heads, num_heads, use_bias
+            in_dim, out_dim // num_heads, num_heads, use_bias, possible_empty
         )
 
         self.O = nn.Linear(out_dim, out_dim)
@@ -320,6 +324,7 @@ class Swin3D(nn.Module):
             self.layer_norm,
             self.batch_norm,
             self.residual,
+            possible_empty=True,
         )
         self.layers_message_passing = nn.ModuleList(
             [
@@ -331,6 +336,7 @@ class Swin3D(nn.Module):
                     self.layer_norm,
                     self.batch_norm,
                     self.residual,
+                    possible_empty=False,
                 )
                 for zz in range(n_layers)
             ]

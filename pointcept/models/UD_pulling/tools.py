@@ -164,6 +164,7 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
         if self.possible_empty:
+            print(g.ndata["wV"].shape, g.ndata["z"].shape)
             g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
             mask_empty = g.ndata["z"] > 0
             head_out = g.ndata["wV"]
@@ -336,7 +337,7 @@ class Swin3D(nn.Module):
                     self.layer_norm,
                     self.batch_norm,
                     self.residual,
-                    possible_empty=False,
+                    possible_empty=True,
                 )
                 for zz in range(n_layers)
             ]

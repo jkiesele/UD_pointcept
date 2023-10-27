@@ -139,9 +139,9 @@ class MultiHeadAttentionLayer(nn.Module):
         print(g.edata["score"].shape)
         g.apply_edges(scaled_exp("score", np.sqrt(self.out_dim)))
         print(g.edata["score"].shape, "Score 2")
+        print("vhhhh", g.ndata["V_h"].shape)
         # Send weighted values to target nodes
         eids = g.edges()
-        print(g.ndata["V_h"].shape)
         g.send_and_recv(
             eids,
             fn.u_mul_e("V_h", "score", "V_h"),

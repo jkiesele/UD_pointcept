@@ -89,7 +89,7 @@ def launch(
     else:
         wandb.init(
             project="pointcept",
-            dir="/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/",
+            dir="/mnt/proj3/dd-23-91/cern/wandb/",
         )
         main_func(*cfg)
 
@@ -136,7 +136,7 @@ def _distributed_worker(
     if dist.get_rank() == 0:
         wandb.init(
             project="pointcept",
-            dir="/afs/cern.ch/work/m/mgarciam/private/wandb_cache_dir/",
+            dir="/mnt/proj3/dd-23-91/cern/wandb/",
         )
     # synchronize is needed here to prevent a possible timeout after calling init_process_group
     # See: https://github.com/facebookresearch/maskrcnn-benchmark/issues/172

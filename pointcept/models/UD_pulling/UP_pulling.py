@@ -80,8 +80,10 @@ class FancyNet(nn.Module):
         h = g.ndata["h"]
         c = g.ndata["c"]
         h = feat
+        ##### initial feature embedding
         h = self.embedding_h(h)
         h = self.batch_norm1(h)
+        ############################
         full_res_features = []
         losses = 0
         depth_label = 0

@@ -483,7 +483,7 @@ class Swin3D(nn.Module):
         self.M = M  # number of points up to connect to
 
         self.attention_layer = GraphTransformerLayer(
-            hidden_dim,
+            hidden_dim + 3,
             hidden_dim,
             num_heads,
             dropout,
@@ -516,11 +516,11 @@ class Swin3D(nn.Module):
             g_i = list_graphs[i]
             # g_i_ = dgl.knn_graph(g_i.ndata["s_l"], 7, exclude_self=True)
             s_li = g_i.ndata["s_l"]
-            tic = time.time()
+            # tic = time.time()
             edge_index = torch_cmspepr.knn_graph(
                 s_li, k=7
             )  # no need to split by batch as we are looping through instances
-            toc = time.time()
+            # toc = time.time()
             g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             list_new.append(g_i_)
         g = dgl.batch(list_new)
@@ -596,9 +596,10 @@ class Swin3D(nn.Module):
         g_connected_to_up = dgl.batch(new_graphs)
         i, j = g_connected_to_up.edges()
         new_graphs_up = dgl.batch(new_graphs_up)
+        # naive way of giving the coordinates gradients
+        features = torch.cat((features, s_l), dim=1)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.attention_layer(g_connected_to_up, features)
-
         # print("features", features.shape)
         up_points = torch.concat(up_points, dim=0)
         return features, up_points, new_graphs_up, loss_ud, i, j

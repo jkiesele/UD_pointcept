@@ -279,14 +279,16 @@ class FindUpPoints(nn.Module):
         if torch.sum(mask_) > 0:
             loss_d = 1 / number_points_same_object[mask_] * sum_same_object[mask_]
             # per neigh measure
-            print("loss_u", loss_u)
-            print("loss_d", torch.mean(loss_d))
-            total_loss_ud = torch.mean(loss_u[mask_] + loss_d)
-            print("loss ud normal", total_loss_ud)
+            # print("loss_u", loss_u)
+            # print("loss_d", torch.mean(loss_d))
+            loss_total = loss_u.clone()
+            # this takes into account some points not having neigh of the same class
+            loss_total[mask_] = loss_u[mask_] + loss_d
+            total_loss_ud = torch.mean(loss_total)
+            # print("loss ud normal", total_loss_ud)
         else:
-            loss_d = torch.ones_like(loss_u)
             total_loss_ud = torch.mean(loss_u)
-            print("loss ud no neigh", total_loss_ud)
+            # print("loss ud no neigh", total_loss_ud)
         # print("total_loss_ud", total_loss_ud)
         self.loss_ud = total_loss_ud
         fake_feature = torch.sum(scores_neigh, dim=1)
@@ -490,14 +492,20 @@ class Swin3D(nn.Module):
         self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        self.attention_layer = GraphTransformerLayer(
-            hidden_dim,
-            hidden_dim,
-            num_heads,
-            dropout,
-            self.layer_norm,
-            self.batch_norm,
-            self.residual,
+        n_layers = 4
+        self.attention_layers = nn.ModuleList(
+            [
+                GraphTransformerLayer(
+                    hidden_dim,
+                    hidden_dim,
+                    num_heads,
+                    dropout,
+                    self.layer_norm,
+                    self.batch_norm,
+                    self.residual,
+                )
+                for zz in range(n_layers - 1)
+            ]
         )
 
     def forward(self, g, h, c):
@@ -608,7 +616,7 @@ class Swin3D(nn.Module):
         features = torch.cat((features, s_l), dim=1)
         features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
-        features = self.attention_layer(g_connected_to_up, features)
-        # print("features", features.shape)
+        for conv in self.attention_layers:
+            features = conv(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0)
         return features, up_points, new_graphs_up, loss_ud, i, j

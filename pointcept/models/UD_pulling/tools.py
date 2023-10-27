@@ -170,6 +170,9 @@ class MultiHeadAttentionLayer(nn.Module):
             mask_empty = g.ndata["z"] > 0
             head_out = g.ndata["wV"]
             head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
+            g.ndata["z"] = g.ndata["z"][:, :, 0].view(
+                g.ndata["wV"].shape[0], self.num_heads, 1
+            )
         else:
             head_out = g.ndata["wV"] / g.ndata["z"]
         return head_out

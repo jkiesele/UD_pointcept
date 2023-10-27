@@ -1,6 +1,6 @@
 _base_ = ["../_base_/default_runtime.py"]
 # misc custom setting
-batch_size = 1  # bs: total bs in all gpus
+batch_size = 4  # bs: total bs in all gpus
 mix_prob = 0
 empty_cache = False
 enable_amp = False
@@ -41,7 +41,7 @@ data = dict(
     ],
     train=dict(
         type=dataset_type,
-        split=("Area_1"),  # "Area_2", "Area_3", "Area_4", "Area_6"
+        split=("Area_1", "Area_2", "Area_3", "Area_4", "Area_6"),
         data_root=data_root,
         transform=[
             dict(type="CenterShift", apply_z=True),

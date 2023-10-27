@@ -109,6 +109,26 @@ If you find _Pointcept_ useful to your research, please cite our work as encoura
 
 ## Installation
 
+### Using Pointcept and training inside Karolina:
+```bash
+salloc -A DD-23-** -N 1 -t 48:00:00 -p qgpu --gpus 4
+# chose a chache dir and create it (image will only be build once and loaded from cache after)
+export SINGULARITY_CACHEDIR=/mnt/proj3/dd-23-**/cern/cache 
+singularity  shell -B /mnt/proj3/dd-23-**/ docker://kdlong/pointcept:v4 
+pip install wandb
+git clone https://github.com/cms-pepr/pytorch_cmspepr.git
+cd pytorch_cmspepr
+pip install -e .
+# go to your dir
+cd /mnt/proj3/dd-23-**/cern/UD_pointcept/
+# to run baseline
+sh scripts/train.sh -p python3 -d s3dis -c semseg-pt-v2m2-0-base -n semseg-pt-v2m2-0-base -g 4
+# to run our model
+sh scripts/train.sh -p python3 -d s3dis -c semseg-udp -n udp_3l_v1 -g 4
+```
+
+
+
 ### Requirements
 - Ubuntu: 18.04 or higher
 - CUDA: 11.3 or higher

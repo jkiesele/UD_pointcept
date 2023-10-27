@@ -617,6 +617,7 @@ class Swin3D(nn.Module):
         features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         for conv in self.attention_layers:
+            print("i", features.shape)
             features = conv(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0)
         return features, up_points, new_graphs_up, loss_ud, i, j

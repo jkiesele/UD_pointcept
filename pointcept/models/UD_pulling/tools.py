@@ -530,13 +530,11 @@ class Swin3D(nn.Module):
         features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.attention_layer(g_connected_to_up, features)
-
+        up_points = torch.concat(up_points, dim=0).view(-1)
         ## add message passing between up points.
-        features_up = features.clone()[up_points.view(-1)]
+        features_up = features.clone()[up_points]
         new_graphs_up.ndata["features_up"] = features_up
         for conv in self.layers_message_passing:
             features_up = conv(new_graphs_up, features_up)
-        features[up_points.view(-1)] = features_up
-
-        up_points = torch.concat(up_points, dim=0)
+        features[up_points] = features_up
         return features, up_points, new_graphs_up, loss_ud, i, j

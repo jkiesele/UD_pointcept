@@ -493,19 +493,14 @@ class Swin3D(nn.Module):
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
         n_layers = 4
-        self.attention_layers = nn.ModuleList(
-            [
-                GraphTransformerLayer(
-                    hidden_dim,
-                    hidden_dim,
-                    num_heads,
-                    dropout,
-                    self.layer_norm,
-                    self.batch_norm,
-                    self.residual,
-                )
-                for zz in range(n_layers)
-            ]
+        self.attention_layer = GraphTransformerLayer(
+            hidden_dim,
+            hidden_dim,
+            num_heads,
+            dropout,
+            self.layer_norm,
+            self.batch_norm,
+            self.residual,
         )
 
     def forward(self, g, h, c):
@@ -616,9 +611,7 @@ class Swin3D(nn.Module):
         features = torch.cat((features, s_l), dim=1)
         features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
-        for ii, conv in enumerate(self.attention_layers):
-            print("i", ii, features.shape)
-            features = conv(g_connected_to_up, features)
+        features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0)
-        print("features", features.shape)
+
         return features, up_points, new_graphs_up, loss_ud, i, j

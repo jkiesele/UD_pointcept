@@ -147,10 +147,12 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.u_mul_e("V_h", "score", "V_h"),
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
+        print("got to here")
+        print("scores ", g.edata["scores"])
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1
-        # print("scores z ", g.ndata["z"])
+        print("scores z ", g.ndata["z"])
         # print("wV ", g.ndata["wV"])
 
     def forward(self, g, h):

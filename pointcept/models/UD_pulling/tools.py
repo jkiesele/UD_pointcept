@@ -532,11 +532,11 @@ class Swin3D(nn.Module):
         features = self.attention_layer(g_connected_to_up, features)
 
         ## add message passing between up points.
-        features_up = features.clone()[up_points_i.view(-1)]
+        features_up = features.clone()[up_points.view(-1)]
         new_graphs_up.ndata["features_up"] = features_up
         for conv in self.layers_message_passing:
             features_up = conv(new_graphs_up, features_up)
-        features[up_points] = features_up
+        features[up_points.view(-1)] = features_up
 
         up_points = torch.concat(up_points, dim=0)
         return features, up_points, new_graphs_up, loss_ud, i, j

@@ -532,7 +532,7 @@ class Swin3D(nn.Module):
         features = self.attention_layer(g_connected_to_up, features)
 
         ## add message passing between up points.
-        features_up = features.clone()[up_points_i]
+        features_up = features.clone()[up_points_i.view(-1)]
         new_graphs_up.ndata["features_up"] = features_up
         for conv in self.layers_message_passing:
             features_up = conv(new_graphs_up, features_up)

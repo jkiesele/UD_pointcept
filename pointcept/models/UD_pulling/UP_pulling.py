@@ -128,7 +128,7 @@ class FancyNet(nn.Module):
         all_resolutions = torch.concat(full_res_features, dim=1)
         h_out = self.MLP_layer(all_resolutions)
 
-        return h_out, losses
+        return h_out, losses / self.number_of_layers
 
     def push_info_down(self, features, i, j):
         # feed information back down averaging the information of the upcoming uppoints

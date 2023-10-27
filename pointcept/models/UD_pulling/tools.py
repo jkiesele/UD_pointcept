@@ -276,10 +276,8 @@ class FindUpPoints(nn.Module):
         sum_same_object = torch.sum(scores_neigh * same_object, dim=1) - values_max
         # print("sum_same_object", sum_same_object)
         mask_ = number_points_same_object > 0
-        if torch.sum(mask_) > 0:
-            loss_d = 1 / number_points_same_object[mask_] * sum_same_object[mask_]
-        else:
-            loss_d = (loss_u + 1) * 100
+
+        loss_d = 1 / number_points_same_object[mask_] * sum_same_object[mask_]
         # print("sum neigh", loss_u[mask_] + loss_d)
         total_loss_ud = torch.mean(loss_u[mask_] + loss_d)  # per neigh measure
         # print("total_loss_ud", total_loss_ud)

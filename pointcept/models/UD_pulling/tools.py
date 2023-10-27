@@ -148,11 +148,11 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
         print("got to here")
-        print("scores ", g.edata["score"])
+        print("scores ", g.edata["score"].shape)
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1
-        print("scores z ", g.ndata["z"])
+        print("scores z ", g.ndata["z"].shape)
         # print("wV ", g.ndata["wV"])
 
     def forward(self, g, h):
@@ -169,11 +169,13 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["K_h"] = K_h.view(-1, self.num_heads, self.out_dim)
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
-        g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
-        mask_empty = g.ndata["z"] > 0
+        print("finished propagating attention")
+        # g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
+        # mask_empty = g.ndata["z"] > 0
 
-        head_out = g.ndata["wV"]
-        head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
+        # head_out = g.ndata["wV"]
+        # head_out[mask_empty] = head_out[mask_empty] / (g.ndata["z"][mask_empty])
+        head_out = g.ndata["wV"] / g.ndata["z"]
         return head_out
 
 

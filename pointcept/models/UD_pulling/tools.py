@@ -148,7 +148,7 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
         print("got to here")
-        print("scores ", g.edata["scores"])
+        print("scores ", g.edata["score"])
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1

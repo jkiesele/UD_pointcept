@@ -144,7 +144,7 @@ class MultiHeadAttentionLayer(nn.Module):
             fn.u_mul_e("V_h", "score", "V_h"),
             fn.sum("V_h", "wV"),  # deprecated in dgl 1.0.1
         )
-        print(g.edata["score"].shape)
+        # print(g.edata["score"].shape)
         g.send_and_recv(
             eids, fn.copy_e("score", "score"), fn.sum("score", "z")
         )  # copy_e deprecated in dgl 1.0.1
@@ -165,7 +165,7 @@ class MultiHeadAttentionLayer(nn.Module):
         g.ndata["V_h"] = V_h.view(-1, self.num_heads, self.out_dim)
         self.propagate_attention(g)
         if self.possible_empty:
-            print(g.ndata["wV"].shape, g.ndata["z"].shape, g.ndata["z"].device)
+            # print(g.ndata["wV"].shape, g.ndata["z"].shape, g.ndata["z"].device)
             g.ndata["z"] = g.ndata["z"].tile((1, 1, self.out_dim))
             mask_empty = g.ndata["z"] > 0
             head_out = g.ndata["wV"]
@@ -468,7 +468,7 @@ class Swin3D(nn.Module):
         features_up = features.clone()[up_points]
         # new_graphs_up.ndata["features_up"] = features_up
         for ii, conv in enumerate(self.layers_message_passing):
-            print(ii, features_up.shape)
+            # print(ii, features_up.shape)
             features_up = conv(new_graphs_up, features_up)
         features[up_points] = features_up
         return features, up_points, new_graphs_up, loss_ud, i, j

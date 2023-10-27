@@ -481,10 +481,10 @@ class Swin3D(nn.Module):
             )  # node feat is an integer
         self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
         self.M = M  # number of points up to connect to
-
+        self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
         self.attention_layer = GraphTransformerLayer(
-            hidden_dim + 3,
-            hidden_dim + 3,
+            hidden_dim,
+            hidden_dim,
             num_heads,
             dropout,
             self.layer_norm,
@@ -598,6 +598,7 @@ class Swin3D(nn.Module):
         new_graphs_up = dgl.batch(new_graphs_up)
         # naive way of giving the coordinates gradients
         features = torch.cat((features, s_l), dim=1)
+        features = self.embedding_features_to_att(features)
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.attention_layer(g_connected_to_up, features)
         # print("features", features.shape)

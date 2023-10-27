@@ -35,7 +35,7 @@ class FancyNet(nn.Module):
         #! starting here
         in_dim_node = 6
         num_heads = 8
-        hidden_dim = 77
+        hidden_dim = 80
         self.layer_norm = False
         self.batch_norm = True
         self.residual = True
@@ -59,7 +59,7 @@ class FancyNet(nn.Module):
             ]
         )
         self.batch_norm1 = nn.BatchNorm1d(hidden_dim)
-        hidden_dim = hidden_dim + 3
+        hidden_dim = hidden_dim
         out_dim = hidden_dim * self.number_of_layers
         self.MLP_layer = MLPReadout(out_dim, self.num_classes)
         #! end here

@@ -459,9 +459,9 @@ class Swin3D(nn.Module):
         up_points = torch.concat(up_points, dim=0).view(-1)
         ## add message passing between up points.
         features_up = features.clone()[up_points]
-        new_graphs_up.ndata["features_up"] = features_up
+        # new_graphs_up.ndata["features_up"] = features_up
         for ii, conv in enumerate(self.layers_message_passing):
-            print(ii)
+            print(ii, features_up.shape)
             features_up = conv(new_graphs_up, features_up)
         features[up_points] = features_up
         return features, up_points, new_graphs_up, loss_ud, i, j

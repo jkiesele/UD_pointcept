@@ -504,7 +504,7 @@ class Swin3D(nn.Module):
                     self.batch_norm,
                     self.residual,
                 )
-                for zz in range(n_layers - 1)
+                for zz in range(n_layers)
             ]
         )
 

@@ -484,7 +484,7 @@ class Swin3D(nn.Module):
 
         self.attention_layer = GraphTransformerLayer(
             hidden_dim + 3,
-            hidden_dim,
+            hidden_dim + 3,
             num_heads,
             dropout,
             self.layer_norm,

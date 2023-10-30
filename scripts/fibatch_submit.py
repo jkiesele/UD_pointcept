@@ -8,6 +8,7 @@ import os
 import uuid
 
 # can be used by others on FI
+CONTLOC='/mnt/home/jkieseler/containers/pointcept_pepr_v1.sif'
 CONTLOC='/mnt/home/jkieseler/containers/pointcept_add_latest.sif'
 UEXT = str(uuid.uuid4())
 

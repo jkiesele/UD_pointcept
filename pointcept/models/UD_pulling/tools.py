@@ -379,7 +379,7 @@ class Swin3D(nn.Module):
             g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             list_new.append(g_i_)
         g = dgl.batch(list_new)
-
+        
         # do an update to calculate the loss of the neighbourhoods
         g.ndata["features"] = features
         g.ndata["scores"] = scores
@@ -405,7 +405,7 @@ class Swin3D(nn.Module):
             s_l_i = graph_i.ndata["s_l"]
             scores_i = graph_i.ndata["scores"].view(-1)
             device = scores_i.device
-            number_up = np.floor(number_nodes_graph * 0.5).astype(int)
+            number_up = np.floor(number_nodes_graph * 0.1).astype(int)
             up_points_i_index = torch.flip(torch.sort(scores_i, dim=0)[1], [0])[
                 0:number_up
             ]
@@ -430,7 +430,7 @@ class Swin3D(nn.Module):
             #     :, 0:M_i
             # ]
             # take the smallest distance and take first M
-            indices_connect = torch.topk(dist_to_up, k=M_i, dim=1)[1]
+            indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
             j = nodes_up[indices_connect]
             j = j.view(-1)
             i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)

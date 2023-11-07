@@ -42,7 +42,7 @@ class FancyNet(nn.Module):
         dropout = 0.05
         self.number_of_layers = 6
         self.num_classes = 13
-        num_neigh = [10, 10, 10, 7, 7, 7]
+        num_neigh = [7, 7, 7, 7, 7, 7]
         self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.layers = nn.ModuleList(
             [

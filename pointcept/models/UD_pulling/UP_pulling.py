@@ -148,6 +148,7 @@ def build_graph(batch, coord):
     list_graphs = []
     for instance in unique_instances:
         mask = batch == instance
+        print("nimner of hits per graph", instance, torch.sum(mask))
         x = coord[mask]
         # knn_g = dgl.knn_graph(x, 3)
         # tic = time.time()

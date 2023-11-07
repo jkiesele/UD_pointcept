@@ -317,7 +317,7 @@ class Swin3D(nn.Module):
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3
             )  # node feat is an integer
-        self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
+        # self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
         n_layers = 2
@@ -348,38 +348,32 @@ class Swin3D(nn.Module):
         )
 
     def forward(self, g, h, c):
-        # embedding to calculate a score
-        # ("h_in", h.shape)
-        scores = self.embedding_scores(h)
-        # print("scores", scores)
-        scores = self.sigmoid_scores(scores)
-        # print("scores", scores)
         object = g.ndata["object"]
         # embedding to calculate the coordinates in the embedding space #! this could also be kept to the original coordinates
         if self.funky_coordinate_space:
             s_l = self.embedding_coordinates(h)
         else:
             s_l = c
-        # embedding features
-        features = self.embedding_features(h)
-        # print("features first layer", features)
         # do knn
         g.ndata["s_l"] = s_l
         list_graphs = dgl.unbatch(g)
         list_new = []
         for i in range(0, len(list_graphs)):
             g_i = list_graphs[i]
-            # g_i_ = dgl.knn_graph(g_i.ndata["s_l"], 7, exclude_self=True)
             s_li = g_i.ndata["s_l"]
-            # tic = time.time()
             edge_index = torch_cmspepr.knn_graph(
                 s_li, k=7
             )  # no need to split by batch as we are looping through instances
-            # toc = time.time()
             g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             list_new.append(g_i_)
         g = dgl.batch(list_new)
-        
+
+        for ii, conv in enumerate(self.layers_message_passing):
+            h = conv(g, h)
+        # embedding to calculate a score
+        scores = self.embedding_scores(h)
+        scores = self.sigmoid_scores(scores)
+
         # do an update to calculate the loss of the neighbourhoods
         g.ndata["features"] = features
         g.ndata["scores"] = scores
@@ -464,11 +458,5 @@ class Swin3D(nn.Module):
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
-        ## add message passing between up points.
-        features_up = features.clone()[up_points]
-        # new_graphs_up.ndata["features_up"] = features_up
-        for ii, conv in enumerate(self.layers_message_passing):
-            # print(ii, features_up.shape)
-            features_up = conv(new_graphs_up, features_up)
-        features[up_points] = features_up
+
         return features, up_points, new_graphs_up, loss_ud, i, j

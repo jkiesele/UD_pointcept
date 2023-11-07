@@ -303,7 +303,7 @@ class Swin3D(nn.Module):
         residual,
         dropout,
         M,
-        k_in
+        k_in,
     ):
         super().__init__()
         self.k = k_in
@@ -373,9 +373,10 @@ class Swin3D(nn.Module):
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
         # embedding to calculate a score
-        scores = self.embedding_scores(h)
-        scores = self.sigmoid_scores(scores)
+        # scores = self.embedding_scores(h)
+        # scores = self.sigmoid_scores(scores)
         features = h
+        scores = torch.rand(h.shape[0]).to(h.device())
 
         # do an update to calculate the loss of the neighbourhoods
         g.ndata["features"] = features

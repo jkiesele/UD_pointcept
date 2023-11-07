@@ -84,7 +84,7 @@ class DefaultSegmentor_plus_UDloss(nn.Module):
             loss = self.criteria(seg_logits, input_dict["segment"])
             if comm.get_local_rank() == 0:
                 wandb.log({"loss seg ": loss, "loss_ud": loss_ud})
-            loss = loss + loss_ud
+            loss = loss  # + loss_ud
             if comm.get_local_rank() == 0:
                 wandb.log({"total loss": loss})
             return dict(loss=loss)

@@ -314,7 +314,7 @@ class Swin3D(nn.Module):
         self.find_up = FindUpPoints()
         # self.embedding_scores = nn.Linear(in_dim_node, 1)  # node feat is an integer
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = True
+        self.funky_coordinate_space = False
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3
@@ -322,7 +322,7 @@ class Swin3D(nn.Module):
         # self.embedding_features = nn.Linear(in_dim_node, hidden_dim)
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        n_layers = 2
+        n_layers = 4
         self.attention_layer = GraphTransformerLayer(
             hidden_dim,
             hidden_dim,

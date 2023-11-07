@@ -376,7 +376,7 @@ class Swin3D(nn.Module):
         # scores = self.embedding_scores(h)
         # scores = self.sigmoid_scores(scores)
         features = h
-        scores = torch.rand(h.shape[0]).to(h.device())
+        scores = torch.rand(h.shape[0]).to(h.device)
 
         # do an update to calculate the loss of the neighbourhoods
         g.ndata["features"] = features

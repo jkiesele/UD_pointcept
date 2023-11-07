@@ -312,7 +312,7 @@ class Swin3D(nn.Module):
         self.residual = residual
         self.send_scores = SendScoresMessage()
         self.find_up = FindUpPoints()
-        self.embedding_scores = nn.Linear(in_dim_node, 1)  # node feat is an integer
+        # self.embedding_scores = nn.Linear(in_dim_node, 1)  # node feat is an integer
         self.sigmoid_scores = nn.Sigmoid()
         self.funky_coordinate_space = True
         if self.funky_coordinate_space:

@@ -373,6 +373,7 @@ class Swin3D(nn.Module):
         # embedding to calculate a score
         scores = self.embedding_scores(h)
         scores = self.sigmoid_scores(scores)
+        features = h
 
         # do an update to calculate the loss of the neighbourhoods
         g.ndata["features"] = features
@@ -399,7 +400,7 @@ class Swin3D(nn.Module):
             s_l_i = graph_i.ndata["s_l"]
             scores_i = graph_i.ndata["scores"].view(-1)
             device = scores_i.device
-            number_up = np.floor(number_nodes_graph * 0.1).astype(int)
+            number_up = np.floor(number_nodes_graph * 0.3).astype(int)
             up_points_i_index = torch.flip(torch.sort(scores_i, dim=0)[1], [0])[
                 0:number_up
             ]

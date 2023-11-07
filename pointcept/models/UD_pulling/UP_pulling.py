@@ -42,6 +42,7 @@ class FancyNet(nn.Module):
         dropout = 0.05
         self.number_of_layers = 6
         self.num_classes = 13
+        num_neigh = [40, 40, 20, 7, 7, 7]
         self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.layers = nn.ModuleList(
             [
@@ -54,8 +55,9 @@ class FancyNet(nn.Module):
                     residual=self.residual,
                     dropout=dropout,
                     M=0.5,
+                    k_in=num_neigh[ii],
                 )
-                for _ in range(self.number_of_layers)
+                for ii in range(self.number_of_layers)
             ]
         )
         self.batch_norm1 = nn.BatchNorm1d(hidden_dim)

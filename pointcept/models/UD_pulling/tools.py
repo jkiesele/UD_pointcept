@@ -303,8 +303,10 @@ class Swin3D(nn.Module):
         residual,
         dropout,
         M,
+        k_in
     ):
         super().__init__()
+        self.k = k_in
         self.layer_norm = layer_norm
         self.batch_norm = batch_norm
         self.residual = residual
@@ -362,7 +364,7 @@ class Swin3D(nn.Module):
             g_i = list_graphs[i]
             s_li = g_i.ndata["s_l"]
             edge_index = torch_cmspepr.knn_graph(
-                s_li, k=7
+                s_li, k=self.k
             )  # no need to split by batch as we are looping through instances
             g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             list_new.append(g_i_)

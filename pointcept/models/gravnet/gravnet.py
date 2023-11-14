@@ -118,7 +118,6 @@ class GravnetModel(nn.Module):
         init_weights_ = True
         if init_weights_:
             # init_weights(self.clustering)
-            init_weights(self.beta)
             init_weights(self.postgn_dense)
             init_weights(self.output)
 

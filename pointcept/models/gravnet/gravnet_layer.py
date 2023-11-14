@@ -59,10 +59,10 @@ class GravNetConv(MessagePassing):
         self.out_channels = out_channels
         self.k = k
         self.num_workers = num_workers
-        if weird_batchnom:
-            self.batchnorm_gravconv = WeirdBatchNorm(out_channels)
-        else:
-            self.batchnorm_gravconv = nn.BatchNorm1d(out_channels)
+        # if weird_batchnom:
+        #     self.batchnorm_gravconv = WeirdBatchNorm(out_channels)
+        # else:
+        #     self.batchnorm_gravconv = nn.BatchNorm1d(out_channels)
         self.lin_s = Linear(in_channels, space_dimensions, bias=False)
         # self.lin_s.weight.data.copy_(torch.eye(space_dimensions, in_channels))
         # torch.nn.init.xavier_uniform_(self.lin_s.weight, gain=0.001)
@@ -340,9 +340,9 @@ class GravNetBlock(nn.Module):
             nn.Linear(self.d_shape, self.d_shape),  #! Dense 2
             nn.ELU(),
         )
-        self.output = nn.Sequential(nn.Linear(self.d_shape, self.d_shape), nn.ELU())
+        # self.output = nn.Sequential(nn.Linear(self.d_shape, self.d_shape), nn.ELU())
 
-        init_weights(self.output)
+        # init_weights(self.output)
         init_weights(self.post_gravnet)
         init_weights(self.pre_gravnet)
 

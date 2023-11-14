@@ -15,6 +15,7 @@ from typing import Optional, Union
 from torch_geometric.typing import OptTensor, PairTensor, PairOptTensor
 from pointcept.models.gravnet.plotting_tools import PlotCoordinates
 
+
 class GravNetConv(MessagePassing):
     """The GravNet operator from the `"Learning Representations of Irregular
     Particle-detector Geometry with Distance-weighted Graph
@@ -76,7 +77,7 @@ class GravNetConv(MessagePassing):
         # self.lin.reset_parameters()
 
     def forward(
-        self, g, x: Tensor, original_coords: Tensor, batch: OptTensor = None
+        self, g, x: Tensor, original_coord: Tensor, batch: OptTensor = None
     ) -> Tensor:
         """"""
 
@@ -135,7 +136,6 @@ class GravNetConv(MessagePassing):
         )
         dist = graph.edata["_norm_edge_weights"]
 
-        original_coord = g.ndata["pos_hits_xyz"]
         gndist = (
             (original_coord[edge_index[0]] - original_coord[edge_index[1]])
             .pow(2)
@@ -299,7 +299,6 @@ def obtain_batch_numbers(x, g):
     return batch
 
 
-
 class GravNetBlock(nn.Module):
     def __init__(
         self,
@@ -370,9 +369,7 @@ class GravNetBlock(nn.Module):
         )
         g.ndata["gncoords"] = gncoords
         if step_count % 50:
-            PlotCoordinates(
-                g, path="gravnet_coord", num_layer=str(num_layer)
-            )
+            PlotCoordinates(g, path="gravnet_coord", num_layer=str(num_layer))
         # gncoords = gncoords.detach()
         x = torch.cat((xgn, gncoords, x_input), dim=1)
         x = self.post_gravnet(x)

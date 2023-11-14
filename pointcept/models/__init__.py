@@ -6,6 +6,7 @@ from .sparse_unet import *
 from .point_transformer import *
 from .point_transformer_v2 import *
 from .UD_pulling import *
+from .gravnet import *
 # from .stratified_transformer import *
 # from .spvcnn import *
 # from .octformer import *

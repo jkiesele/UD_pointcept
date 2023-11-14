@@ -224,7 +224,6 @@ class WeirdBatchNorm(nn.Module):
         # initinalize batch normalization parameters
         self.gamma = nn.Parameter(torch.ones(self.n_neurons))
         self.beta = nn.Parameter(torch.zeros(self.n_neurons))
-        print("self beta requires grad", self.beta.requires_grad)
         self.mean = torch.zeros(self.n_neurons)
         self.den = torch.ones(self.n_neurons)
         self.viscosity = 0.999999

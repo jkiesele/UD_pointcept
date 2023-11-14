@@ -45,7 +45,7 @@ class GravnetModel(nn.Module):
 
         clust_space_norm = "none"
         activation = "elu"
-        weird_batchnom = True
+        weird_batchnom = False
         assert activation in ["relu", "tanh", "sigmoid", "elu"]
         acts = {
             "relu": nn.ReLU(),

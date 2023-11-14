@@ -71,7 +71,9 @@ def launch(
             logger.warning(
                 "file:// is not a reliable init_method in multi-machine jobs. Prefer tcp://"
             )
-
+        os.environ[
+            "TORCH_DISTRIBUTED_DEBUG"
+        ] = "DETAIL"  # set to DETAIL for runtime logging.
         mp.spawn(
             _distributed_worker,
             nprocs=num_gpus_per_machine,

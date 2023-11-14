@@ -43,7 +43,12 @@ class FancyNet(nn.Module):
         self.number_of_layers = 6
         self.num_classes = 13
         num_neigh = [7, 7, 7, 7, 7, 7]
-        self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
+        #self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
+        self.embedding_h = nn.Sequential(
+            nn.Linear(in_dim_node, hidden_dim, bias=False),
+            nn.BatchNorm1d(hidden_dim),
+            nn.ReLU(inplace=True),
+        )
         self.layers = nn.ModuleList(
             [
                 Swin3D(
@@ -60,7 +65,7 @@ class FancyNet(nn.Module):
                 for ii in range(self.number_of_layers)
             ]
         )
-        self.batch_norm1 = nn.BatchNorm1d(hidden_dim)
+        #self.batch_norm1 = nn.BatchNorm1d(hidden_dim)
         hidden_dim = hidden_dim
         out_dim = hidden_dim * self.number_of_layers
         self.MLP_layer = MLPReadout(out_dim, self.num_classes)
@@ -68,9 +73,7 @@ class FancyNet(nn.Module):
 
     def forward(self, data_dict):
         coord = data_dict["coord"]
-        print("coords", coord[0:10])
         feat = data_dict["feat"]
-        print("features", feat[0:10])
         offset = data_dict["offset"].int()
         object = data_dict["segment"]
         batch = offset2batch(offset)
@@ -87,7 +90,7 @@ class FancyNet(nn.Module):
         h = feat
         ##### initial feature embedding
         h = self.embedding_h(h)
-        h = self.batch_norm1(h)
+        #h = self.batch_norm1(h)
         ############################
         full_res_features = []
         losses = 0

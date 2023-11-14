@@ -113,8 +113,7 @@ class GravnetModel(nn.Module):
             nn.Linear(64, 22),
             nn.Softmax(dim=-1),
         )
-        self.clustering = nn.Linear(64, self.output_dim - 1, bias=False)
-        self.beta = nn.Linear(64, 1)
+        self.clustering = nn.Linear(64, self.output_dim, bias=False)
 
         init_weights_ = True
         if init_weights_:

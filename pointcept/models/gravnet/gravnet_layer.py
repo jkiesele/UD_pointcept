@@ -117,8 +117,10 @@ class EdgeDistancesPassing(nn.Module):
         super(EdgeDistancesPassing, self).__init__()
 
     def forward(self, edges):
-
-        info_to_agg = edges.src["h_l"] * edges.data["potential"]
+        print(edges.src["h_l"].shape, edges.data["potential"].shape)
+        info_to_agg = torch.matmul(
+            edges.data["potential"].view(-1, 1), edges.src["h_l"]
+        )
         return {"feat_dist": info_to_agg}
 
 

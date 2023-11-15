@@ -14,21 +14,17 @@ def PlotCoordinates(g, path, num_layer=0):
         graph_i = graphs[i]
         if path == "input_coords":
             coords = graph_i.ndata["original_coords"]
-            features = graph_i.ndata["h"][:, -2]  # consider energy for size
         if path == "gravnet_coord":
             coords = graph_i.ndata["gncoords"]
-            features = graph_i.ndata["h"][:, -2]
         if path == "final_clustering":
             coords = graph_i.ndata["final_cluster"]
-            features = torch.sigmoid(graph_i.ndata["beta"])
 
-        tidx = graph_i.ndata["particle_number"]
+        tidx = graph_i.ndata["object"]
         data = {
             "X": coords[:, 0].view(-1, 1).detach().cpu().numpy(),
             "Y": coords[:, 1].view(-1, 1).detach().cpu().numpy(),
             "Z": coords[:, 2].view(-1, 1).detach().cpu().numpy(),
             "tIdx": tidx.view(-1, 1).detach().cpu().numpy(),
-            "features": features.view(-1, 1).detach().cpu().numpy(),
         }
         hoverdict = {}
         # if hoverfeat is not None:
@@ -56,7 +52,6 @@ def PlotCoordinates(g, path, num_layer=0):
             y="Y",
             z="Z",
             color="tIdx",
-            size="features",
             # hover_data=hover_data,
             template="plotly_dark",
             color_continuous_scale=px.colors.sequential.Rainbow,

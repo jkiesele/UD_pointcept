@@ -142,7 +142,7 @@ class GravnetModel(nn.Module):
         graphs = []
         loss_regularizing_neig = 0.0
         loss_ll = 0
-        if (self.step % 50) == 0:
+        if (self.step % 50) == 0 and self.training:
             PlotCoordinates(g, path="input_coords")
             self.step += 1
         for num_layer, gravnet_block in enumerate(self.gravnet_blocks):
@@ -169,7 +169,8 @@ class GravnetModel(nn.Module):
         x = self.ScaledGooeyBatchNorm2_2(x)
         x_cluster_coord = self.clustering(x)
         g.ndata["final_cluster"] = x_cluster_coord
-        PlotCoordinates(g, path="final_clustering")
+        if (self.step % 50) == 0 and self.training:
+            PlotCoordinates(g, path="final_clustering")
         return x_cluster_coord
 
 

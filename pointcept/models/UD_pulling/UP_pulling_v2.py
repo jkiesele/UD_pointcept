@@ -68,7 +68,7 @@ class FancyNet(nn.Module):
         self.batch_norm1 = nn.BatchNorm1d(in_dim_node, momentum=0.01)
         hidden_dim = hidden_dim
         out_dim = hidden_dim * self.number_of_layers
-
+        self.n_postgn_dense_blocks = 3
         postgn_dense_modules = nn.ModuleList()
         for i in range(self.n_postgn_dense_blocks):
             postgn_dense_modules.extend(

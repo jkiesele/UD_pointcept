@@ -144,8 +144,8 @@ class FancyNet(nn.Module):
             # print(h_up_down.shape)
             # full_res_features.append(h_up_down)
 
-        all_resolutions = torch.concat(h_up_down, dim=1)
-        x = self.postgn_dense(all_resolutions)
+        # all_resolutions = torch.concat(h_up_down, dim=1)
+        x = self.postgn_dense(h_up_down)
         x = self.ScaledGooeyBatchNorm2_2(x)
         h_out = self.clustering(x)
 

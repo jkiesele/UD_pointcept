@@ -112,7 +112,7 @@ class FancyNet(nn.Module):
         ############################
         full_res_features = []
         losses = 0
-        depth_label = 1
+        depth_label = 0
         full_up_points = []
         ij_pairs = []
         latest_depth_rep = []

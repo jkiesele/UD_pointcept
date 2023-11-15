@@ -9,6 +9,7 @@ import os.path as osp
 import time
 import numpy as np
 import torch_cmspepr
+from pointcept.models.UD_pulling.tools import GraphTransformerLayer
 
 """
     Fancy Pulling
@@ -314,14 +315,14 @@ class Swin3D(nn.Module):
         # self.send_scores = SendScoresMessage()
         # self.find_up = FindUpPoints()
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = True
+        self.funky_coordinate_space = False
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3
             )  # node feat is an integer
         self.M = M  # number of points up to connect to
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        n_layers = 4
+
         # self.attention_layer = GraphTransformerLayer(
         #     hidden_dim,
         #     hidden_dim,
@@ -348,6 +349,22 @@ class Swin3D(nn.Module):
         #         for zz in range(n_layers)
         #     ]
         # )
+        n_layers = 2
+        self.layers_message_passing = nn.ModuleList(
+            [
+                GraphTransformerLayer(
+                    hidden_dim,
+                    hidden_dim,
+                    8,
+                    0.05,
+                    False,
+                    True,
+                    True,
+                    possible_empty=True,
+                )
+                for zz in range(n_layers)
+            ]
+        )
 
     def forward(self, g, h, c):
         object = g.ndata["object"]
@@ -435,6 +452,7 @@ class Swin3D(nn.Module):
             # graph_up = dgl.DGLGraph().to(device)
             # graph_up.add_nodes(len(nodes_up))
             graph_up.ndata["object"] = g_i.ndata["object"][up_points_i]
+            graph_up.ndata["s_l"] = g_i.ndata["s_l"][up_points_i]
 
             # add knn in graphs up to do message passing after
             new_graphs_up.append(graph_up)
@@ -449,7 +467,21 @@ class Swin3D(nn.Module):
         features = self.MLP_difs(g_connected_to_up, features)
         # features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
-
+        list_new = []
+        for i in range(0, len(new_graphs_up)):
+            g_i = new_graphs_up[i]
+            s_li = g_i.ndata["s_l"]
+            edge_index = torch_cmspepr.knn_graph(
+                s_li, k=7
+            )  # no need to split by batch as we are looping through instances
+            g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
+            g_i_ = dgl.remove_self_loop(g_i_)
+            list_new.append(g_i_)
+        new_graphs_up = dgl.batch(list_new)
+        features_up = features[up_points]
+        for ii, conv in enumerate(self.layers_message_passing):
+            features_up = conv(new_graphs_up, features_up)
+        features[up_points] = features_up
         return features, up_points, new_graphs_up, i, j, s_l
 
 

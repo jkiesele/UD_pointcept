@@ -314,7 +314,7 @@ class Swin3D(nn.Module):
         # self.send_scores = SendScoresMessage()
         # self.find_up = FindUpPoints()
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = False
+        self.funky_coordinate_space = True
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3
@@ -450,7 +450,7 @@ class Swin3D(nn.Module):
         # features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
 
-        return features, up_points, new_graphs_up, i, j
+        return features, up_points, new_graphs_up, i, j, s_l
 
 
 class MLP_difs(nn.Module):

@@ -131,7 +131,6 @@ class MeanMax_aggregation(nn.Module):
         super(MeanMax_aggregation, self).__init__()
 
     def forward(self, nodes):
-        print(nodes.mailbox["feat_dist"].shape)
         mean_agg = torch.mean(nodes.mailbox["feat_dist"], dim=1)
         max_agg = torch.max(nodes.mailbox["feat_dist"], dim=1)[0]
         out = torch.cat([mean_agg, max_agg], dim=-1)

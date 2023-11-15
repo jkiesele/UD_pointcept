@@ -13,7 +13,7 @@ def PlotCoordinates(g, path, num_layer=0):
     for i in range(0, 3):
         graph_i = graphs[i]
         if path == "input_coords":
-            coords = graph_i.ndata["original_coords"]
+            coords = graph_i.ndata["c"]
         if path == "gravnet_coord":
             coords = graph_i.ndata["gncoords"]
         if path == "final_clustering":

@@ -132,8 +132,6 @@ class GravnetModel(nn.Module):
         g.ndata["c"] = coord
         #! this is to have the GT for the loss
         g.ndata["object"] = object
-        h = g.ndata["h"]
-        c = g.ndata["c"]
         x = feat
         original_coords = coord
         x = self.ScaledGooeyBatchNorm2_1(x)
@@ -170,6 +168,8 @@ class GravnetModel(nn.Module):
         x = self.postgn_dense(x)
         x = self.ScaledGooeyBatchNorm2_2(x)
         x_cluster_coord = self.clustering(x)
+        g.ndata["final_cluster"] = x_cluster_coord
+        PlotCoordinates(g, path="final_clustering")
         return x_cluster_coord
 
 

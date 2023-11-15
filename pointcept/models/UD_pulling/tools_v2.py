@@ -349,21 +349,21 @@ class Swin3D(nn.Module):
         #     ]
         # )
         n_layers = 2
-        self.layers_message_passing = nn.ModuleList(
-            [
-                GraphTransformerLayer(
-                    hidden_dim,
-                    hidden_dim,
-                    8,
-                    0.05,
-                    False,
-                    True,
-                    True,
-                    possible_empty=True,
-                )
-                for zz in range(n_layers)
-            ]
-        )
+        # self.layers_message_passing = nn.ModuleList(
+        #     [
+        #         GraphTransformerLayer(
+        #             hidden_dim,
+        #             hidden_dim,
+        #             8,
+        #             0.05,
+        #             False,
+        #             True,
+        #             True,
+        #             possible_empty=True,
+        #         )
+        #         for zz in range(n_layers)
+        #     ]
+        # )
 
     def forward(self, g, h, c):
         object = g.ndata["object"]
@@ -466,21 +466,21 @@ class Swin3D(nn.Module):
         features = self.MLP_difs(g_connected_to_up, features)
         # features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
-        list_new = []
-        for zzz in range(0, len(new_graphs_up)):
-            g_i = new_graphs_up[zzz]
-            s_li = g_i.ndata["s_l"]
-            edge_index = torch_cmspepr.knn_graph(
-                s_li, k=3
-            )  # no need to split by batch as we are looping through instances
-            g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
-            g_i_ = dgl.remove_self_loop(g_i_)
-            list_new.append(g_i_)
-        new_graphs_up = dgl.batch(list_new)
-        features_up = features[up_points]
-        for ii, conv in enumerate(self.layers_message_passing):
-            features_up = conv(new_graphs_up, features_up)
-        features[up_points] = features_up
+        # list_new = []
+        # for zzz in range(0, len(new_graphs_up)):
+        #     g_i = new_graphs_up[zzz]
+        #     s_li = g_i.ndata["s_l"]
+        #     edge_index = torch_cmspepr.knn_graph(
+        #         s_li, k=3
+        #     )  # no need to split by batch as we are looping through instances
+        #     g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
+        #     g_i_ = dgl.remove_self_loop(g_i_)
+        #     list_new.append(g_i_)
+        # new_graphs_up = dgl.batch(list_new)
+        # features_up = features[up_points]
+        # for ii, conv in enumerate(self.layers_message_passing):
+        #     features_up = conv(new_graphs_up, features_up)
+        # features[up_points] = features_up
         return features, up_points, new_graphs_up, i, j, s_l
 
 

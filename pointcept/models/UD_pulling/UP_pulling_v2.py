@@ -122,24 +122,25 @@ class FancyNet(nn.Module):
             up_points = up_points.view(-1)
             ij_pairs.append([i, j])
             full_up_points.append(up_points)
-            # h = features[up_points]
-            # c = c[up_points]
+            h = features[up_points]
+            c = c[up_points]
+            depth_label = depth_label + 1
             # losses = losses + loss_ud
             features_down = features
             for it in range(0, depth_label):
                 h_up_down = self.push_info_down(features_down, i, j)
-                # try:
-                #     latest_depth_rep[l - it] = h_up_down
-                # except:
-                #     latest_depth_rep.append(h_up_down)
-                # if depth_label > 1 and (l - it - 1) >= 0:
-                #     # print(l, it)
-                #     h_up_down_previous = latest_depth_rep[l - it - 1]
-                #     up_points_down = full_up_points[l - it - 1]
-                #     h_up_down_previous[up_points_down] = h_up_down
-                #     features_down = h_up_down_previous
-                #     i, j = ij_pairs[l - it - 1]
-            h = h_up_down
+                try:
+                    latest_depth_rep[l - it] = h_up_down
+                except:
+                    latest_depth_rep.append(h_up_down)
+                if depth_label > 1 and (l - it - 1) >= 0:
+                    # print(l, it)
+                    h_up_down_previous = latest_depth_rep[l - it - 1]
+                    up_points_down = full_up_points[l - it - 1]
+                    h_up_down_previous[up_points_down] = h_up_down
+                    features_down = h_up_down_previous
+                    i, j = ij_pairs[l - it - 1]
+            # h = h_up_down
             # print(h_up_down.shape)
             full_res_features.append(h_up_down)
 

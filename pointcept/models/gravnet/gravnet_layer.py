@@ -308,9 +308,9 @@ class GravNetBlock(nn.Module):
         x = self.pre_gravnet(x)
         x = self.batchnorm_gravnet1(x)
         x_input = x
-        xgn, graph, gncoords, loss_regularizing_neig, ll_r = self.gravnet_layer(
+        xgn, graph, gncoords = self.gravnet_layer(
             g, x, original_coords, batch
-        )
+        ) # loss_regularizing_neig, ll_r
         g.ndata["gncoords"] = gncoords
         if (step_count % 50) == 0 and self.training:
             PlotCoordinates(g, path="gravnet_coord", num_layer=str(num_layer))
@@ -321,7 +321,7 @@ class GravNetBlock(nn.Module):
         x = self.batchnorm_gravnet2(x)  #! batchnorm 2
         # x = global_exchange(x, batch)
         # x = self.output(x)
-        return x, graph, loss_regularizing_neig, ll_r
+        return x, graph #, loss_regularizing_neig, ll_r
 
 
 def init_weights(m):

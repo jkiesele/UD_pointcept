@@ -146,21 +146,21 @@ class GravnetModel(nn.Module):
             PlotCoordinates(g, path="input_coords")
             self.step += 1
         for num_layer, gravnet_block in enumerate(self.gravnet_blocks):
-            x, graph, loss_regularizing_neig_block, loss_ll_ = gravnet_block(
+            x, graph = gravnet_block(
                 g,
                 x,
                 batch,
                 original_coords,
                 step_count,
                 num_layer,
-            )
+            )  # , loss_regularizing_neig_block, loss_ll_
 
             allfeat.append(x)
             graphs.append(graph)
-            loss_regularizing_neig = (
-                loss_regularizing_neig_block + loss_regularizing_neig
-            )
-            loss_ll = loss_ll_ + loss_ll
+            # loss_regularizing_neig = (
+            #     loss_regularizing_neig_block + loss_regularizing_neig
+            # )
+            # loss_ll = loss_ll_ + loss_ll
             if len(allfeat) > 1:
                 x = torch.concatenate(allfeat, dim=1)
 

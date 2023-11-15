@@ -472,8 +472,9 @@ class Swin3D(nn.Module):
             g_i = new_graphs_up[i]
             s_li = g_i.ndata["s_l"]
             edge_index = torch_cmspepr.knn_graph(
-                s_li, k=7
+                s_li, k=3
             )  # no need to split by batch as we are looping through instances
+            print(edge_index[0].shape, edge_index[1].shape, s_li.shape)
             g_i_ = dgl.graph((edge_index[0], edge_index[1]), num_nodes=s_li.shape[0])
             g_i_ = dgl.remove_self_loop(g_i_)
             list_new.append(g_i_)

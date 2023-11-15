@@ -33,6 +33,14 @@ class FancyNet(nn.Module):
     def __init__(self):
         super().__init__()
         #! starting here
+        activation = "elu"
+        acts = {
+            "relu": nn.ReLU(),
+            "tanh": nn.Tanh(),
+            "sigmoid": nn.Sigmoid(),
+            "elu": nn.ELU(),
+        }
+        self.act = acts[activation]
         in_dim_node = 6
         num_heads = 8
         hidden_dim = 80

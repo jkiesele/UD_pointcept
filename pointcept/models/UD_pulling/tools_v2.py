@@ -9,7 +9,6 @@ import os.path as osp
 import time
 import numpy as np
 import torch_cmspepr
-from pointcept.models.UD_pulling.tools import GraphTransformerLayer
 
 """
     Fancy Pulling
@@ -468,8 +467,8 @@ class Swin3D(nn.Module):
         # features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
         list_new = []
-        for i in range(0, len(new_graphs_up)):
-            g_i = new_graphs_up[i]
+        for zzz in range(0, len(new_graphs_up)):
+            g_i = new_graphs_up[zzz]
             s_li = g_i.ndata["s_l"]
             edge_index = torch_cmspepr.knn_graph(
                 s_li, k=3

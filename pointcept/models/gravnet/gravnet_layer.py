@@ -266,7 +266,7 @@ class GravNetBlock(nn.Module):
             propagate_dimensions,
             k,
             weird_batchnom,
-        ).jittable()
+        )
 
         self.post_gravnet = nn.Sequential(
             nn.Linear(

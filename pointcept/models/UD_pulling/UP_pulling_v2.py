@@ -48,9 +48,9 @@ class FancyNet(nn.Module):
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
-        self.number_of_layers = 4
+        self.number_of_layers = 10
         self.num_classes = 13
-        num_neigh = [7, 7, 7, 7]
+        num_neigh = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
         # self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.embedding_h = nn.Sequential(
             nn.Linear(in_dim_node, hidden_dim, bias=False),

@@ -351,6 +351,8 @@ class GravNetBlock(nn.Module):
         else:
             self.batchnorm_gravnet2 = nn.BatchNorm1d(self.d_shape, momentum=0.01)
 
+        self.step = 0
+
     def forward(
         self,
         g,
@@ -367,8 +369,9 @@ class GravNetBlock(nn.Module):
             g, x, original_coords, batch
         )
         g.ndata["gncoords"] = gncoords
-        if step_count % 50:
+        if (step_count % 50) == 0:
             PlotCoordinates(g, path="gravnet_coord", num_layer=str(num_layer))
+            self.step += 1
         # gncoords = gncoords.detach()
         x = torch.cat((xgn, gncoords, x_input), dim=1)
         x = self.post_gravnet(x)

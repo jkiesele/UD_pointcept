@@ -16,7 +16,7 @@ import dgl.function as fn
 from torch.utils.checkpoint import checkpoint
 from torch_geometric.nn.pool import voxel_grid
 from torch_scatter import segment_csr
-
+import numpy as np
 import einops
 from timm.models.layers import DropPath
 import pointops
@@ -115,6 +115,7 @@ class GravnetModel(nn.Module):
             self.ScaledGooeyBatchNorm2_2 = WeirdBatchNorm(64)
         else:
             self.ScaledGooeyBatchNorm2_2 = nn.BatchNorm1d(64, momentum=0.01)
+        self.step = 0
 
     def forward(self, data_dict):
         step_count = 0
@@ -143,8 +144,9 @@ class GravnetModel(nn.Module):
         graphs = []
         loss_regularizing_neig = 0.0
         loss_ll = 0
-        if step_count % 10:
+        if (self.step % 50) == 0:
             PlotCoordinates(g, path="input_coords")
+            self.step += 1
         for num_layer, gravnet_block in enumerate(self.gravnet_blocks):
             x, graph, loss_regularizing_neig_block, loss_ll_ = gravnet_block(
                 g,

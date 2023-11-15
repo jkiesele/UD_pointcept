@@ -458,7 +458,7 @@ class Swin3D(nn.Module):
 
         g_connected_to_up = dgl.batch(new_graphs)
         i, j = g_connected_to_up.edges()
-        # new_graphs_up = dgl.batch(new_graphs_up)
+        new_graphs_up = dgl.batch(new_graphs_up)
         # naive way of giving the coordinates gradients
         features = torch.cat((features, s_l), dim=1)
         features = self.embedding_features_to_att(features)

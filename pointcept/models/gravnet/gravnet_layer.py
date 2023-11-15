@@ -117,7 +117,6 @@ class EdgeDistancesPassing(nn.Module):
         super(EdgeDistancesPassing, self).__init__()
 
     def forward(self, edges):
-        print(edges.src["h_l"].shape, edges.data["potential"].shape)
         info_to_agg = edges.data["potential"].view(-1, 1) * edges.src["h_l"]
 
         return {"feat_dist": info_to_agg}

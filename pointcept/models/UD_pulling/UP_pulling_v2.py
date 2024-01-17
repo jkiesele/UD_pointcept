@@ -75,7 +75,7 @@ class FancyNet(nn.Module):
         )
         self.batch_norm1 = nn.BatchNorm1d(in_dim_node, momentum=0.01)
         hidden_dim = hidden_dim
-        out_dim = hidden_dim  # * self.number_of_layers
+        out_dim = hidden_dim * self.number_of_layers
         self.n_postgn_dense_blocks = 3
         postgn_dense_modules = nn.ModuleList()
         for i in range(self.n_postgn_dense_blocks):
@@ -142,10 +142,10 @@ class FancyNet(nn.Module):
                     i, j = ij_pairs[l - it - 1]
             # h = h_up_down
             # print(h_up_down.shape)
-            # full_res_features.append(h_up_down)
+            full_res_features.append(h_up_down)
 
-        # all_resolutions = torch.concat(h_up_down, dim=1)
-        x = self.postgn_dense(h_up_down)
+        all_resolutions = torch.concat(full_res_features, dim=1)
+        x = self.postgn_dense(all_resolutions)
         x = self.ScaledGooeyBatchNorm2_2(x)
         h_out = self.clustering(x)
 
@@ -156,7 +156,7 @@ class FancyNet(nn.Module):
         g_connected_down = dgl.graph((j, i), num_nodes=features.shape[0])
         g_connected_down.ndata["features"] = features
         g_connected_down.update_all(
-            fn.copy_u("features", "m"), fn.sum("m", "h")
+            fn.copy_u("features", "m"), fn.mean("m", "h")
         )  #! full resolution graph
         h_up_down = g_connected_down.ndata["h"]
         # g connected down is the highest resolution graph with mean features of the up nodes

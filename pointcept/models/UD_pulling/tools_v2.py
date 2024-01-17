@@ -348,22 +348,22 @@ class Swin3D(nn.Module):
         #         for zz in range(n_layers)
         #     ]
         # )
-        n_layers = 2
-        self.layers_message_passing = nn.ModuleList(
-            [
-                GraphTransformerLayer(
-                    hidden_dim,
-                    hidden_dim,
-                    2,
-                    0.05,
-                    False,
-                    True,
-                    True,
-                    possible_empty=True,
-                )
-                for zz in range(n_layers)
-            ]
-        )
+        # n_layers = 2
+        # self.layers_message_passing = nn.ModuleList(
+        #     [
+        #         GraphTransformerLayer(
+        #             hidden_dim,
+        #             hidden_dim,
+        #             2,
+        #             0.05,
+        #             False,
+        #             True,
+        #             True,
+        #             possible_empty=True,
+        #         )
+        #         for zz in range(n_layers)
+        #     ]
+        # )
 
     def forward(self, g, h, c):
         object = g.ndata["object"]
@@ -477,10 +477,12 @@ class Swin3D(nn.Module):
         #     g_i_ = dgl.remove_self_loop(g_i_)
         #     list_new.append(g_i_)
         # new_graphs_up = dgl.batch(list_new)
-        features_up = features[up_points]
-        for ii, conv in enumerate(self.layers_message_passing):
-            features_up = conv(new_graphs_up, features_up)
-        features[up_points] = features_up
+        #
+        #
+        # features_up = features[up_points]
+        # for ii, conv in enumerate(self.layers_message_passing):
+        #     features_up = conv(new_graphs_up, features_up)
+        # features[up_points] = features_up
         return features, up_points, new_graphs_up, i, j, s_l
 
 
@@ -539,7 +541,7 @@ class EdgeDistancesPassing(nn.Module):
 
     def forward(self, edges):
         #! maybe this should be the distance to simplify at first ?
-        #! also this could be a softmax as Jan was saying 
+        #! also this could be a softmax as Jan was saying
         dif = edges.src["features"] - edges.dst["features"]
         att_weight = self.MLP(dif)
         att_weight = torch.exp(-att_weight)

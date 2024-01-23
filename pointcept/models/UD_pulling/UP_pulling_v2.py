@@ -42,16 +42,16 @@ class FancyNet(nn.Module):
         }
         self.act = acts[activation]
         in_dim_node = 6
-        num_heads = 8
-        hidden_dim = 80
+        num_heads = 4
+        hidden_dim = 40
         self.layer_norm = False
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
-        self.number_of_layers = 4
+        self.number_of_layers = 6
         self.num_classes = 13
-        num_neigh = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
-        n_layers = [4, 2, 2, 2]
+        num_neigh = [16, 16, 16, 16, 16, 16, 16, 7, 7, 7]
+        n_layers = [2, 2, 2, 2, 2, 2]
         # self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.embedding_h = nn.Sequential(
             nn.Linear(in_dim_node, hidden_dim, bias=False),

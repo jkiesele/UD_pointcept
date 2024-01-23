@@ -487,6 +487,7 @@ class SWIN3D_Blocks(nn.Module):
         batch_norm,
         residual,
         dropout,
+        possible_empty=True,
     ):
         super().__init__()
         self.layer_norm = layer_norm

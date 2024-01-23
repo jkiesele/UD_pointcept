@@ -51,6 +51,7 @@ class FancyNet(nn.Module):
         self.number_of_layers = 4
         self.num_classes = 13
         num_neigh = [7, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+        n_layers = [4, 2, 2, 2]
         # self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.embedding_h = nn.Sequential(
             nn.Linear(in_dim_node, hidden_dim, bias=False),
@@ -69,6 +70,7 @@ class FancyNet(nn.Module):
                     dropout=dropout,
                     M=0.5,
                     k_in=num_neigh[ii],
+                    n_layers=n_layers[ii],
                 )
                 for ii in range(self.number_of_layers)
             ]

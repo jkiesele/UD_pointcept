@@ -43,14 +43,14 @@ class FancyNet(nn.Module):
         self.act = acts[activation]
         in_dim_node = 6
         num_heads = 4
-        hidden_dim = 40
+        hidden_dim = 128
         self.layer_norm = False
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
         self.number_of_layers = 6
         self.num_classes = 13
-        num_neigh = [16, 16, 16, 16, 16, 16, 16, 7, 7, 7]
+        num_neigh = [16, 16, 16, 16, 7, 16, 7, 7, 7, 7]
         n_layers = [2, 2, 2, 2, 2, 2]
         # self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.embedding_h = nn.Sequential(
@@ -77,7 +77,7 @@ class FancyNet(nn.Module):
         )
         self.batch_norm1 = nn.BatchNorm1d(in_dim_node, momentum=0.01)
         hidden_dim = hidden_dim
-        out_dim = hidden_dim  # * (self.number_of_layers + 1)
+        out_dim = hidden_dim * (self.number_of_layers + 1)
         self.n_postgn_dense_blocks = 3
         postgn_dense_modules = nn.ModuleList()
         for i in range(self.n_postgn_dense_blocks):
@@ -148,8 +148,8 @@ class FancyNet(nn.Module):
             # print(h_up_down.shape)
             full_res_features.append(h_up_down)
 
-        # all_resolutions = torch.concat(full_res_features, dim=1)
-        x = self.postgn_dense(full_res_features[-1])
+        all_resolutions = torch.concat(full_res_features, dim=1)
+        x = self.postgn_dense(all_resolutions)
         x = self.ScaledGooeyBatchNorm2_2(x)
         h_out = self.clustering(x)
 

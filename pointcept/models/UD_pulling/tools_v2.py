@@ -321,7 +321,7 @@ class Swin3D(nn.Module):
                 in_dim_node, 3
             )  # node feat is an integer
         self.M = M  # number of points up to connect to
-
+        self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.SWIN3D_Blocks = SWIN3D_Blocks(
             n_layers,
             hidden_dim,
@@ -356,6 +356,7 @@ class Swin3D(nn.Module):
             s_l = self.embedding_coordinates(h)
         else:
             s_l = c
+        h = self.embedding_h(h)
         # do knn and graph attention blocks
         g.ndata["s_l"] = s_l
         g = knn_per_graph(

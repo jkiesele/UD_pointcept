@@ -358,7 +358,10 @@ class Swin3D(nn.Module):
             s_l = c
         # do knn and graph attention blocks
         g.ndata["s_l"] = s_l
-        g = knn_per_graph(g, s_l, 16)
+        g = knn_per_graph(
+            g, s_l, 16
+        )  #! if these are learnt then they should be added to the gradients, they are not at the moment
+        g.ndata["h"] = h
         h = self.SWIN3D_Blocks(g)
         features = h
         scores = torch.rand(h.shape[0]).to(h.device)
@@ -510,6 +513,7 @@ class SWIN3D_Blocks(nn.Module):
         )
 
     def forward(self, g):
+        h = g.ndata["h"]
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
 

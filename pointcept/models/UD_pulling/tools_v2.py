@@ -451,8 +451,8 @@ class EdgeDistancesPassing(nn.Module):
         #! also this could be a softmax as Jan was saying
         dif = edges.src["features"] - edges.dst["features"]
         att_weight = self.MLP(dif)
-        att_weight = torch.exp(-att_weight)
-        feature = att_weight * edges.dst["features"]
+        att_weight = torch.sigmoid(att_weight)  #! try sigmoid
+        feature = att_weight * edges.src["features"]
         return {"feature_n": feature}
 
 
@@ -568,7 +568,8 @@ class Downsample(nn.Module):
             nodes_down = nodes[~up_points_i]
             dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
             # take the smallest distance and take first M
-            indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
+            # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
+            indices_connect = top_k_per_node(-dist_to_up, M_i)
             j = nodes_up[indices_connect]
             j = j.view(-1)
             i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)
@@ -606,3 +607,14 @@ class Downsample(nn.Module):
         up_points = torch.concat(up_points, dim=0).view(-1)
 
         return up_points, new_graphs_up, i, j
+
+
+def top_k_per_node(dist_to_up, M_i):
+    num_nodes = len(dist_to_up)
+    indices_connect_all = []
+    for i in range(0, num_nodes):
+        indices_connect = torch.topk(-dist_to_up[i], k=M_i, dim=0)[1]
+        indices_connect_all.append(indices_connect.view(-1, 1))
+
+    indices_connect_all = torch.cat(indices_connect_all, dim=0)
+    return indices_connect_all

@@ -363,11 +363,10 @@ class Swin3D(nn.Module):
         )  #! if these are learnt then they should be added to the gradients, they are not at the moment
         g.ndata["h"] = h
         h = self.SWIN3D_Blocks(g)
-        features = h
         scores = torch.rand(h.shape[0]).to(h.device)
 
         # do an update to calculate the loss of the neighbourhoods
-        g.ndata["features"] = features
+        # g.ndata["features"] = features
         g.ndata["scores"] = scores
         g.ndata["object"] = object
         g.ndata["s_l"] = s_l
@@ -375,7 +374,7 @@ class Swin3D(nn.Module):
         # g.update_all(self.send_scores, self.find_up)
         # loss_ud = self.find_up.loss_ud
 
-        up_points, new_graphs_up, i, j = self.Downsample(g)
+        features, up_points, new_graphs_up, i, j = self.Downsample(g)
         # list_new = []
         # for zzz in range(0, len(new_graphs_up)):
         #     g_i = new_graphs_up[zzz]
@@ -543,6 +542,7 @@ class Downsample(nn.Module):
         self.MLP_difs = MLP_difs(hidden_dim, hidden_dim)
 
     def forward(self, g):
+        features = g.ndata["h"]
         list_graphs = dgl.unbatch(g)
         s_l = g.ndata["s_l"]
         new_graphs = []
@@ -611,7 +611,7 @@ class Downsample(nn.Module):
         # features = self.attention_layer(g_connected_to_up, features)
         up_points = torch.concat(up_points, dim=0).view(-1)
 
-        return up_points, new_graphs_up, i, j
+        return features, up_points, new_graphs_up, i, j
 
 
 def top_k_per_node(dist_to_up, M_i):

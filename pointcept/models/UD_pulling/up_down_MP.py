@@ -46,7 +46,7 @@ class MLP_difs_softmax(nn.Module):
         g.apply_edges(self.edgedistancespassing_softmax)
         print("edge data shape", g.edata["att_weight"].shape)
         norm_edge_weight = self.norm(
-            dgl.reverse(g), g.edata["att_weight"]
+            dgl.reverse(g), g.edata["att_weight"].view(-1)
         )  # this allows to spread the info of one node into upnodes
         g.edata["att_weight"] = norm_edge_weight
         g.update_all(self.edgedistancespassing_1, fn.sum("feature_n", "h_updated"))

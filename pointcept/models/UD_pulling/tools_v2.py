@@ -575,6 +575,12 @@ class Downsample(nn.Module):
             dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
             # take the smallest distance and take first M
             # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
+            dis_print = dist_to_up.clone()
+            dis_print = dis_print.detach().numpy()
+            with open("dis_print.pickle", "wb") as handle:
+                import pickle
+
+                pickle.dump(dis_print, handle)
             indices_connect = top_k_per_node(-dist_to_up, M_i)
             j = nodes_up[indices_connect]
             j = j.view(-1)

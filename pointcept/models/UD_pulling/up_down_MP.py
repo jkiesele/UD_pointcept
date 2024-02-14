@@ -43,7 +43,7 @@ class MLP_difs_softmax(nn.Module):
     def forward(self, g, h):
         h_in = h
         g.ndata["features"] = h
-        g.apply_edges(self.edgedistancespassing)
+        g.apply_edges(self.edgedistancespassing_softmax)
         norm_edge_weight = self.norm(
             dgl.reverse(g), g.edata["att_weight"]
         )  # this allows to spread the info of one node into upnodes

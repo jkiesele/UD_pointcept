@@ -581,6 +581,7 @@ class Downsample(nn.Module):
                 import pickle
 
                 pickle.dump(dis_print, handle)
+            0 / 0
             indices_connect = top_k_per_node(-dist_to_up, M_i)
             j = nodes_up[indices_connect]
             j = j.view(-1)

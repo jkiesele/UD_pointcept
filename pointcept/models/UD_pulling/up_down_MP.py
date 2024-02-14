@@ -130,7 +130,7 @@ class EdgeDistancesPassing_1(nn.Module):
         super(EdgeDistancesPassing_1, self).__init__()
 
     def forward(self, edges):
-        feature = edges.edata["att_weight"] * edges.src["features"]
+        feature = edges.data["att_weight"] * edges.src["features"]
         return {"feature_n": feature}
 
 

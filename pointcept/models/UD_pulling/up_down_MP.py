@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,6 +11,7 @@ import numpy as np
 import torch_cmspepr
 from torch import Tensor
 from torch.nn import Linear
+from dgl.nn import EdgeWeightNorm, GraphConv
 
 
 class MLP_difs_softmax(nn.Module):
@@ -66,7 +66,7 @@ class EdgeDistancesPassing_softmax(nn.Module):
     """
 
     def __init__(self, in_dim, out_dim):
-        super(EdgeDistancesPassing, self).__init__()
+        super(EdgeDistancesPassing_softmax, self).__init__()
         self.MLP = nn.Sequential(
             nn.Linear(in_dim, out_dim),  #! Dense 3
             nn.ReLU(),
@@ -79,8 +79,6 @@ class EdgeDistancesPassing_softmax(nn.Module):
         att_weight = self.MLP(dif)
         att_weight = torch.sigmoid(att_weight)  #! try sigmoid
         return {"att_weight": att_weight}
-
-
 
 
 class MLP_difs(nn.Module):
@@ -120,6 +118,7 @@ class MLP_difs(nn.Module):
         h = h_in2 + h  # residual connection
         h = self.batch_norm2(h)
         return h
+
 
 class EdgeDistancesPassing_1(nn.Module):
     """
@@ -188,4 +187,3 @@ class MeanMax_aggregation_2(nn.Module):
         out = torch.cat([mean_agg, max_agg], dim=-1)
         out = self.O(out)
         return {"h_updated": out}
-

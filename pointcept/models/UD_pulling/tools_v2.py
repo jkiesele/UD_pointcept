@@ -13,7 +13,7 @@ from torch import Tensor
 from torch.nn import Linear
 from dgl.nn import EdgeWeightNorm, GraphConv
 from pointcept.models.UD_pulling.attention_layers import GraphTransformerLayer
-from pointcept.models.UD_pulling.up_down_MP import MLP_difs_softmax
+from pointcept.models.UD_pulling.up_down_MP import MLP_difs, MLP_difs_softmax
 
 
 class Swin3D(nn.Module):
@@ -156,7 +156,7 @@ class Downsample(nn.Module):
         super().__init__()
         self.M = M
         self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        self.MLP_difs = MLP_difs_softmax(hidden_dim, hidden_dim)
+        self.MLP_difs = MLP_difs(hidden_dim, hidden_dim)
 
     def forward(self, g):
         features = g.ndata["h"]

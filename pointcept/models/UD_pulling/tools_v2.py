@@ -576,7 +576,7 @@ class Downsample(nn.Module):
             # take the smallest distance and take first M
             # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
             dis_print = dist_to_up.clone()
-            dis_print = dis_print.detach().numpy()
+            dis_print = dis_print.detach().cpu().numpy()
             with open("dis_print.pickle", "wb") as handle:
                 import pickle
 

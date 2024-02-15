@@ -192,23 +192,10 @@ class Downsample(nn.Module):
             nodes = torch.range(start=0, end=number_nodes_graph - 1, step=1).to(device)
             nodes_up = nodes[up_points_i]
             nodes_down = nodes[~up_points_i]
-            #!
-            # dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
-            # # take the smallest distance and take first M
-            # # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
-            # indices_connect = top_k_per_node(-dist_to_up, M_i)
+
             neigh_indices, neigh_dist_sq = torch_cmspepr.select_knn_directional(
                 s_l_i[up_points_i], s_l_i[~up_points_i], M_i
             )
-            print(neigh_indices)
-            print(
-                "down and up point coordinates",
-                s_l_i[up_points_i].shape,
-                s_l_i[~up_points_i].shape,
-            )
-            print("ind shape", neigh_indices.shape, nodes_up.shape)
-
-            0 / 0
             j = nodes_up[neigh_indices]
             j = j.view(-1)
             i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)
@@ -247,15 +234,15 @@ class Downsample(nn.Module):
         return features, up_points, graphs_U, i, j
 
 
-def top_k_per_node(dist_to_up, M_i):
-    num_nodes = len(dist_to_up)
-    indices_connect_all = []
-    for i in range(0, num_nodes):
-        indices_connect = torch.topk(-dist_to_up[i], k=M_i, dim=0)[1]
-        indices_connect_all.append(indices_connect.view(-1, 1))
+# def top_k_per_node(dist_to_up, M_i):
+#     num_nodes = len(dist_to_up)
+#     indices_connect_all = []
+#     for i in range(0, num_nodes):
+#         indices_connect = torch.topk(-dist_to_up[i], k=M_i, dim=0)[1]
+#         indices_connect_all.append(indices_connect.view(-1, 1))
 
-    indices_connect_all = torch.cat(indices_connect_all, dim=0)
-    return indices_connect_all
+#     indices_connect_all = torch.cat(indices_connect_all, dim=0)
+#     return indices_connect_all
 
 
 def knn_per_graph(g, sl, k):

@@ -192,11 +192,24 @@ class Downsample(nn.Module):
             nodes = torch.range(start=0, end=number_nodes_graph - 1, step=1).to(device)
             nodes_up = nodes[up_points_i]
             nodes_down = nodes[~up_points_i]
-            dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
-            # take the smallest distance and take first M
-            # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
-            indices_connect = top_k_per_node(-dist_to_up, M_i)
-            j = nodes_up[indices_connect]
+            #!
+            # dist_to_up = torch.cdist(s_l_i[~up_points_i], s_l_i[up_points_i])
+            # # take the smallest distance and take first M
+            # # indices_connect = torch.topk(-dist_to_up, k=M_i, dim=1)[1]
+            # indices_connect = top_k_per_node(-dist_to_up, M_i)
+            neigh_indices, neigh_dist_sq = torch_cmspepr.select_knn_directional(
+                s_l_i[up_points_i], s_l_i[~up_points_i], M_i
+            )
+            print(neigh_indices)
+            print(
+                "down and up point coordinates",
+                s_l_i[up_points_i].shape,
+                s_l_i[~up_points_i].shape,
+            )
+            print("ind shape", neigh_indices.shape, nodes_up.shape)
+
+            0 / 0
+            j = nodes_up[neigh_indices]
             j = j.view(-1)
             i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)
 

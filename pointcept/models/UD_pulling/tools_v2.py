@@ -194,7 +194,7 @@ class Downsample(nn.Module):
             nodes_down = nodes[~up_points_i]
 
             neigh_indices, neigh_dist_sq = torch_cmspepr.select_knn_directional(
-                s_l_i[up_points_i], s_l_i[~up_points_i], M_i
+                s_l_i[~up_points_i], s_l_i[up_points_i], M_i
             )
             j = nodes_up[neigh_indices]
             j = j.view(-1)

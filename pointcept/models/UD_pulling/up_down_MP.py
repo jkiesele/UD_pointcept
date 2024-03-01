@@ -204,14 +204,12 @@ class MLP_difs_maxpool(nn.Module):
 
         self.in_channels = in_dim
         self.out_channels = out_dim
-        self.edgedistancespassing = EdgePassing(
-            self.in_channels, self.out_channels
-        )
+        self.edgedistancespassing = EdgePassing(self.in_channels, self.out_channels)
         self.meanmaxaggregation = Max_aggregation(self.out_channels)
-        self.batch_norm = nn.BatchNorm1d(out_dim)
-        self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
-        self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
-        self.batch_norm2 = nn.BatchNorm1d(out_dim)
+        # self.batch_norm = nn.BatchNorm1d(out_dim)
+        # self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
+        # self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
+        # self.batch_norm2 = nn.BatchNorm1d(out_dim)
 
     def forward(self, g, h):
         h_in = h

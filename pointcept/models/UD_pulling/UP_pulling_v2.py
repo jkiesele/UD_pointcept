@@ -120,6 +120,7 @@ class FancyNet(nn.Module):
         latest_depth_rep = []
         for l, swin3 in enumerate(self.layers):
             features, up_points, g, i, j, s_l = swin3(g, h, c)
+            print(features.shape)
             if l == 0:
                 full_res_features.append(features)
             c = s_l

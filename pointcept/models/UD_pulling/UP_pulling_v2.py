@@ -42,7 +42,7 @@ class FancyNet(nn.Module):
         }
         self.act = acts[activation]
         in_dim_node = 6
-        num_heads = 4
+        num_heads = 6
         hidden_dim = 128
         self.layer_norm = False
         self.batch_norm = True
@@ -50,8 +50,8 @@ class FancyNet(nn.Module):
         dropout = 0.05
         self.number_of_layers = 6
         self.num_classes = 13
-        num_neigh = [16, 16, 16, 16, 7, 16, 7, 7, 7, 7]
-        n_layers = [2, 2, 2, 2, 2, 2]
+        num_neigh = [16, 16, 16, 16, 16]
+        n_layers = [2, 4, 9, 4, 4]
         # self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
         self.embedding_h = nn.Sequential(
             nn.Linear(in_dim_node, hidden_dim, bias=False),
@@ -75,7 +75,7 @@ class FancyNet(nn.Module):
                 for ii in range(self.number_of_layers)
             ]
         )
-        self.batch_norm1 = nn.BatchNorm1d(in_dim_node, momentum=0.01)
+        # self.batch_norm1 = nn.BatchNorm1d(in_dim_node, momentum=0.01)
         hidden_dim = hidden_dim
         out_dim = hidden_dim * (self.number_of_layers + 1)
         self.n_postgn_dense_blocks = 3
@@ -89,7 +89,7 @@ class FancyNet(nn.Module):
             )
         self.postgn_dense = nn.Sequential(*postgn_dense_modules)
         self.clustering = nn.Linear(64, 13, bias=False)
-        self.ScaledGooeyBatchNorm2_2 = nn.BatchNorm1d(64, momentum=0.01)
+        self.ScaledGooeyBatchNorm2_2 = nn.BatchNorm1d(64, momentum=0.1)
 
     def forward(self, data_dict):
         coord = data_dict["coord"]
@@ -109,7 +109,7 @@ class FancyNet(nn.Module):
         c = g.ndata["c"]
         h = feat
         ##### initial feature embedding
-        h = self.batch_norm1(h)
+        # h = self.batch_norm1(h)
         h = self.embedding_h(h)
         ############################
         full_res_features = []

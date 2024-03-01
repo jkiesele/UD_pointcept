@@ -13,7 +13,11 @@ from torch import Tensor
 from torch.nn import Linear
 from dgl.nn import EdgeWeightNorm, GraphConv
 from pointcept.models.UD_pulling.attention_layers import GraphTransformerLayer
-from pointcept.models.UD_pulling.up_down_MP import MLP_difs, MLP_difs_softmax
+from pointcept.models.UD_pulling.up_down_MP import (
+    MLP_difs,
+    MLP_difs_softmax,
+    MLP_difs_maxpool,
+)
 
 
 class Swin3D(nn.Module):
@@ -65,7 +69,7 @@ class Swin3D(nn.Module):
             self.residual,
             possible_empty=True,
         )
-        self.Downsample = Downsample(hidden_dim, M)
+        self.Downsample = Downsample_maxpull(hidden_dim, M)
 
     def forward(self, g, h, c):
         object = g.ndata["object"]
@@ -234,17 +238,6 @@ class Downsample(nn.Module):
         return features, up_points, graphs_U, i, j
 
 
-# def top_k_per_node(dist_to_up, M_i):
-#     num_nodes = len(dist_to_up)
-#     indices_connect_all = []
-#     for i in range(0, num_nodes):
-#         indices_connect = torch.topk(-dist_to_up[i], k=M_i, dim=0)[1]
-#         indices_connect_all.append(indices_connect.view(-1, 1))
-
-#     indices_connect_all = torch.cat(indices_connect_all, dim=0)
-#     return indices_connect_all
-
-
 def knn_per_graph(g, sl, k):
     """Build knn for each graph in the batch
 
@@ -353,3 +346,91 @@ class FindUpPoints(nn.Module):
         self.loss_ud = total_loss_ud
         fake_feature = torch.sum(scores_neigh, dim=1)
         return {"new_feat": fake_feature}
+
+
+class Downsample_maxpull(nn.Module):
+    """Point 4)
+    - find up points
+    - find neigh of from down to up
+    """
+
+    def __init__(self, hidden_dim, M):
+        super().__init__()
+        self.M = M
+        self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
+        self.MLP_difs = MLP_difs_maxpool(hidden_dim, hidden_dim)
+
+    def forward(self, g):
+        features = g.ndata["h"]
+        list_graphs = dgl.unbatch(g)
+        s_l = g.ndata["s_l"]
+        graphs_UD = []
+        graphs_U = []
+        up_points = []
+        for i in range(0, len(list_graphs)):
+            graph_i = list_graphs[i]
+            number_nodes_graph = graph_i.number_of_nodes()
+
+            # find up nodes
+            s_l_i = graph_i.ndata["s_l"]
+            scores_i = graph_i.ndata["scores"].view(-1)
+            device = scores_i.device
+            number_up = np.floor(number_nodes_graph * 0.25).astype(int)
+            up_points_i_index = torch.flip(torch.sort(scores_i, dim=0)[1], [0])[
+                0:number_up
+            ]
+            up_points_i = torch.zeros_like(scores_i)
+            up_points_i[up_points_i_index.long()] = 1
+            up_points_i = up_points_i.bool()
+
+            up_points.append(up_points_i)
+
+            # connect down to up
+            number_up_points_i = torch.sum(up_points_i)
+            if number_up_points_i > 5:
+                M_i = 5
+            else:
+                M_i = number_up_points_i
+            nodes = torch.range(start=0, end=number_nodes_graph - 1, step=1).to(device)
+            nodes_up = nodes[up_points_i]
+            nodes_down = nodes[~up_points_i]
+
+            neigh_indices, neigh_dist_sq = torch_cmspepr.select_knn_directional(
+                s_l_i[~up_points_i], s_l_i[up_points_i], M_i
+            )
+            j = nodes_up[neigh_indices]
+            j = j.view(-1)
+            i = torch.tile(nodes_down.view(-1, 1), (1, M_i)).reshape(-1)
+
+            g_i = dgl.graph((i.long(), j.long()), num_nodes=number_nodes_graph).to(
+                device
+            )
+            g_i.ndata["h"] = graph_i.ndata["h"]
+            g_i.ndata["s_l"] = graph_i.ndata["s_l"]
+            g_i.ndata["object"] = graph_i.ndata["object"]
+            # find index in original numbering
+            graphs_UD.append(g_i)
+            # use this way if no message passing between nodes
+            # edge_index = torch_cmspepr.knn_graph(s_l_i[up_points_i], k=7)
+            # graph_up = dgl.graph(
+            #     (edge_index[0], edge_index[1]), num_nodes=len(nodes_up)
+            # ).to(device)
+            graph_up = dgl.DGLGraph().to(device)
+            graph_up.add_nodes(len(nodes_up))
+            graph_up.ndata["object"] = g_i.ndata["object"][up_points_i]
+            graph_up.ndata["s_l"] = g_i.ndata["s_l"][up_points_i]
+            graphs_U.append(graph_up)
+
+        graphs_UD = dgl.batch(graphs_UD)
+        i, j = graphs_UD.edges()
+        graphs_U = dgl.batch(graphs_U)
+        # naive way of giving the coordinates gradients
+        features = torch.cat((features, s_l), dim=1)
+        features = self.embedding_features_to_att(features)
+
+        # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
+        features = self.MLP_difs_maxpool(graphs_UD, features)
+
+        up_points = torch.concat(up_points, dim=0).view(-1)
+
+        return features, up_points, graphs_U, i, j

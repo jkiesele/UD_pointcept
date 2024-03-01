@@ -160,7 +160,7 @@ class FancyNet(nn.Module):
         g_connected_down = dgl.graph((j, i), num_nodes=features.shape[0])
         g_connected_down.ndata["features"] = features
         g_connected_down.update_all(
-            fn.copy_u("features", "m"), fn.mean("m", "h")
+            fn.copy_u("features", "m"), fn.max("m", "h")
         )  #! full resolution graph
         h_up_down = g_connected_down.ndata["h"]
         # g connected down is the highest resolution graph with mean features of the up nodes

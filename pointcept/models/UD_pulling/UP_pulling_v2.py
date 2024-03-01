@@ -48,7 +48,7 @@ class FancyNet(nn.Module):
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
-        self.number_of_layers = 6
+        self.number_of_layers = 5
         self.num_classes = 13
         num_neigh = [16, 16, 16, 16, 16]
         n_layers = [2, 4, 9, 4, 4]

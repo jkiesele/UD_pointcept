@@ -144,6 +144,7 @@ class SWIN3D_Blocks(nn.Module):
 
     def forward(self, g):
         h = g.ndata["h"]
+        print("h inputs",h.shape)
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
 

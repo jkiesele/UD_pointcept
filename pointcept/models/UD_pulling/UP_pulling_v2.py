@@ -42,7 +42,7 @@ class FancyNet(nn.Module):
         }
         self.act = acts[activation]
         in_dim_node = 6
-        num_heads = 6
+        num_heads = 8
         hidden_dim = 128
         self.layer_norm = False
         self.batch_norm = True

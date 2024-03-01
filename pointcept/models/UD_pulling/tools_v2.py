@@ -144,7 +144,7 @@ class SWIN3D_Blocks(nn.Module):
 
     def forward(self, g):
         h = g.ndata["h"]
-        print("h inputs",h.shape)
+        print("h inputs", h.shape)
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
 
@@ -430,7 +430,7 @@ class Downsample_maxpull(nn.Module):
         features = self.embedding_features_to_att(features)
 
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
-        features = self.MLP_difs_maxpool(graphs_UD, features)
+        features = self.MLP_difs(graphs_UD, features)
 
         up_points = torch.concat(up_points, dim=0).view(-1)
 

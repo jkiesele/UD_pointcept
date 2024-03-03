@@ -24,8 +24,10 @@ import pointops
 from pointcept.models.builder import MODELS
 from pointcept.models.utils import offset2batch, batch2offset
 from pointcept.models.UD_pulling.tools_v2 import Swin3D, MLPReadout
+from pointcept.models.UD_pulling.plotting_tools import PlotCoordinates
 from pointcept.models.utils import offset2batch, batch2offset
 import torch_cmspepr
+import pointcept.utils.comm as comm
 
 
 @MODELS.register_module("FP_v2")
@@ -90,6 +92,7 @@ class FancyNet(nn.Module):
         self.postgn_dense = nn.Sequential(*postgn_dense_modules)
         self.clustering = nn.Linear(64, 13, bias=False)
         self.ScaledGooeyBatchNorm2_2 = nn.BatchNorm1d(64, momentum=0.1)
+        self.step_count = 0
 
     def forward(self, data_dict):
         coord = data_dict["coord"]
@@ -110,6 +113,16 @@ class FancyNet(nn.Module):
         h = feat
         ##### initial feature embedding
         # h = self.batch_norm1(h)
+        if comm.get_local_rank() == 0 and self.step_count % 100 == 0:
+            PlotCoordinates(
+                g,
+                path="input_coords",
+                features_type="ones",
+                predict=False,
+                epoch=str(0),
+                step_count=self.step_count,
+            )
+        g1 = g
         h = self.embedding_h(h)
         ############################
         full_res_features = []
@@ -120,11 +133,12 @@ class FancyNet(nn.Module):
         latest_depth_rep = []
         for l, swin3 in enumerate(self.layers):
             features, up_points, g, i, j, s_l = swin3(g, h, c)
-            print(features.shape)
             if l == 0:
                 full_res_features.append(features)
             c = s_l
             up_points = up_points.view(-1)
+            if l ==0:
+                g1.ndata["up_points"] = up_points + 1
             ij_pairs.append([i, j])
             full_up_points.append(up_points)
             h = features[up_points]
@@ -153,7 +167,17 @@ class FancyNet(nn.Module):
         x = self.postgn_dense(all_resolutions)
         x = self.ScaledGooeyBatchNorm2_2(x)
         h_out = self.clustering(x)
-
+        g.ndata["final_clustering"] = torch.argmax(h_out)
+        if comm.get_local_rank() == 0 and self.step_count % 100 == 0:
+            PlotCoordinates(
+                g1,
+                path="final_clustering",
+                features_type="ones",
+                predict=False,
+                epoch=str(0),
+                step_count=self.step_count,
+            )
+        self.step_count = self.step_count + 1
         return h_out  # , losses / self.number_of_layers
 
     def push_info_down(self, features, i, j):

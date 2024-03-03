@@ -52,7 +52,7 @@ class Swin3D(nn.Module):
         # self.send_scores = SendScoresMessage()
         # self.find_up = FindUpPoints()
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = False
+        self.funky_coordinate_space = True
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3

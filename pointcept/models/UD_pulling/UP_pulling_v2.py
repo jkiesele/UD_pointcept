@@ -167,7 +167,7 @@ class FancyNet(nn.Module):
         x = self.postgn_dense(all_resolutions)
         x = self.ScaledGooeyBatchNorm2_2(x)
         h_out = self.clustering(x)
-        g1.ndata["final_clustering"] = torch.argmax(h_out)
+        g1.ndata["final_clustering"] = torch.argmax(h_out, dim=1)
         if comm.get_local_rank() == 0 and self.step_count % 100 == 0:
             PlotCoordinates(
                 g1,

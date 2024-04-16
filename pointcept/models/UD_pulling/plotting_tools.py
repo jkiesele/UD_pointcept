@@ -17,7 +17,7 @@ def PlotCoordinates(
     epoch="",
     step_count=0,
 ):
-    outdir = "/mnt/proj3/dd-23-91/UD_poincept_models/030324/"
+    outdir = "/mnt/home/jkieseler/Dolo/models/160424/"
     if predict:
         outdir = outdir + "/figures_evaluation"
     else:
@@ -41,8 +41,10 @@ def PlotCoordinates(
         #         features = graph_i.ndata["h"][:, -2]
         if path == "final_clustering":
             coords = graph_i.ndata["c"]
-            features = graph_i.ndata["up_points"]
-            tidx = graph_i.ndata["final_clustering"]
+            features = torch.ones_like(coords[:, 0]).view(
+                -1, 1
+            )  # graph_i.ndata["up_points"]
+            tidx = graph_i.ndata["final_clustering"].view(-1, 1)
         data = {
             "X": coords[:, 0].view(-1, 1).detach().cpu().numpy(),
             "Y": coords[:, 1].view(-1, 1).detach().cpu().numpy(),

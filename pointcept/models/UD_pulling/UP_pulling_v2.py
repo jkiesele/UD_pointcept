@@ -190,7 +190,7 @@ class UNet(nn.Module):
         h_store = g.ndata["h"]
         hs.append(h_store)
 
-        for i in range(self.number_of_layers - 1):
+        for layer_idx in range(self.number_of_layers - 1):
 
             print("starting up block", i)
             up_idx = self.number_of_layers - i - 1
@@ -206,7 +206,7 @@ class UNet(nn.Module):
             print("MP up", h.shape, h.device)
             g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
-            g = self.message_passing_up[i](g)
+            g = self.message_passing_up[layer_idx](g)
 
             # skipped connection
             h = g.ndata["h"] + h_above

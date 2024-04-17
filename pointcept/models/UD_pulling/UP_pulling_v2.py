@@ -169,7 +169,7 @@ class UNet(nn.Module):
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
             g = mp(g, h, c)
-            adj_m.append(g.edges[0], g.edges[1])
+            adj_m.append([g.edges[0], g.edges[1]])
             s_l = g.ndata["s_l"]
             hs.append(g.ndata["h"])
 

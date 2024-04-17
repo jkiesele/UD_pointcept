@@ -166,6 +166,7 @@ class UNet(nn.Module):
         adj_m = []
         ij_pairs = []
         latest_depth_rep = []
+        print(len(self.message_passing),len(self.contract_blocks))
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
             print("MP", h.shape, h.device)

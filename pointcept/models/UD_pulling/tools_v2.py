@@ -160,7 +160,7 @@ class Downsample_block(nn.Module):
 
         self.Downsample = Downsample_maxpull(hidden_dim, M)
 
-    def forward(self, g, h, c):
+    def forward(self, g):
         # 4) Downsample:
         features, up_points, new_graphs_up, i, j = self.Downsample(g)
         return features, up_points, new_graphs_up, i, j

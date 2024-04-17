@@ -139,7 +139,7 @@ class MP_up(nn.Module):
         # 3) Message passing on the down graph SWIN3D_Blocks
         h = self.SWIN3D_Blocks(g, h)
         g.ndata["h"] = h
-        return g
+        return g, h 
 
 
 class Downsample_block(nn.Module):

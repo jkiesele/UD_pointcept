@@ -168,8 +168,7 @@ class UNet(nn.Module):
         latest_depth_rep = []
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
-            if comm.get_local_rank() == 0:
-                print("MP", h.shape)
+            print("MP", h.shape, h.device)
             g = mp(g, h, c)
             adj_m.append([g.edges[0], g.edges[1]])
             s_l = g.ndata["s_l"]
@@ -189,8 +188,8 @@ class UNet(nn.Module):
         hs.append(g.ndata["h"])
 
         for i in range(self.number_of_layers - 1):
-            if comm.get_local_rank() == 0:
-                print("starting up block", i)
+
+            print("starting up block", i)
             up_idx = self.number_of_layers - i - 1
             i, j = ij_pairs[up_idx - 1]
             h = hs[up_idx]
@@ -199,8 +198,8 @@ class UNet(nn.Module):
 
             h = self.push_info_up(h, h_above, idx, i, j)
             i, j = adj_m[up_idx - 1]
-            if comm.get_local_rank() == 0:
-                print("MP up", h.shape)
+
+            print("MP up", h.shape, h.device)
             g = dgl.graph((i, j), num_nodes=h_above.shape[0])
             g.ndata["h"] = h
             g = self.message_passing_up[i](g)

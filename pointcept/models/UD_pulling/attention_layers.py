@@ -65,10 +65,7 @@ class GraphTransformerLayer(nn.Module):
 
     def forward(self, g, h):
         h_in1 = h  # for first residual connection
-        # print("h in attention", h)
-        # multi-head attention out
         attn_out = self.attention(g, h)
-
         h = attn_out.view(-1, self.out_channels)
         # print("h attention", h)
         h = F.dropout(h, self.dropout, training=self.training)
@@ -102,7 +99,6 @@ class GraphTransformerLayer(nn.Module):
             h = self.batch_norm2(h)
         # print("h attention final", h)
         return h
-
 
 
 class MultiHeadAttentionLayer(nn.Module):

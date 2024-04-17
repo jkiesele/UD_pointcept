@@ -212,7 +212,6 @@ class MLP_difs_maxpool(nn.Module):
         # self.batch_norm2 = nn.BatchNorm1d(out_dim)
 
     def forward(self, g, h):
-        h_in = h
         g.ndata["features"] = h
         g.update_all(self.edgedistancespassing, self.meanmaxaggregation)
         h = g.ndata["h_updated"]

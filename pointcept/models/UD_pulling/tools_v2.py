@@ -97,7 +97,7 @@ class MP(nn.Module):
         # calculate loss of score
         # g.update_all(self.send_scores, self.find_up)
         # loss_ud = self.find_up.loss_ud
-        return g
+        return g, h
 
 
 class MP_up(nn.Module):
@@ -137,7 +137,6 @@ class MP_up(nn.Module):
         )
 
     def forward(self, g):
-        h = g.ndata["h"]
         # 3) Message passing on the down graph SWIN3D_Blocks
         h = self.SWIN3D_Blocks(g)
         g.ndata["h"] = h
@@ -206,7 +205,6 @@ class SWIN3D_Blocks(nn.Module):
         h = g.ndata["h"]
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
-
         return h
 
 

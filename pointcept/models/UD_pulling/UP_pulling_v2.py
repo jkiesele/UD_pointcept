@@ -166,14 +166,13 @@ class UNet(nn.Module):
         adj_m = []
         ij_pairs = []
         latest_depth_rep = []
-        print(len(self.message_passing), len(self.contract_blocks))
+
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
-            print("MP", h.shape, h.device)
-            g = mp(g, h, c)
+            g, h = mp(g, h, c)
             adj_m.append([g.edges()[0], g.edges()[1]])
             s_l = g.ndata["s_l"]
-            h_store = g.ndata["h"]
+            h_store = h
             hs.append(h_store)
 
             # Go down one level
@@ -186,28 +185,22 @@ class UNet(nn.Module):
             c = c[down_points]
             depth_label = depth_label + 1
 
-        g = self.bottelneck(g, h, c)
-        h_store = g.ndata["h"]
+        g, h = self.bottelneck(g, h, c)
+        h_store = h
         hs.append(h_store)
 
         for layer_idx in range(self.number_of_layers - 1):
 
-            print("starting up block", layer_idx)
             up_idx = self.number_of_layers - layer_idx - 1
             i, j = ij_pairs[up_idx - 1]
             h = hs[up_idx]
-            print(h)
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]
-
             h = self.push_info_up(h, h_above, idx, i, j)
             i, j = adj_m[up_idx - 1]
-
-            print("MP up", h.shape, h.device)
             g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
             g = self.message_passing_up[layer_idx](g)
-
             # skipped connection
             h = g.ndata["h"] + h_above
 

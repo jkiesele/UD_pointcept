@@ -173,7 +173,8 @@ class UNet(nn.Module):
             g = mp(g, h, c)
             adj_m.append([g.edges[0], g.edges[1]])
             s_l = g.ndata["s_l"]
-            hs.append(g.ndata["h"])
+            h_store = g.ndata["h"]
+            hs.append(h_store)
 
             # Go down one level
             features, down_points, g, i, j = down(g)
@@ -186,7 +187,8 @@ class UNet(nn.Module):
             depth_label = depth_label + 1
 
         g = self.bottelneck(g, h, c)
-        hs.append(g.ndata["h"])
+        h_store = g.ndata["h"]
+        hs.append(h_store)
 
         for i in range(self.number_of_layers - 1):
 
@@ -194,6 +196,7 @@ class UNet(nn.Module):
             up_idx = self.number_of_layers - i - 1
             i, j = ij_pairs[up_idx - 1]
             h = hs[up_idx]
+            print(h)
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]
 

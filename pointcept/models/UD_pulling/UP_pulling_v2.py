@@ -187,11 +187,11 @@ class UNet(nn.Module):
         hs.append(g.ndata["h"])
 
         for i in range(self.number_of_layers - 1):
-            up_idx = self.l_n - i - 1
-            i, j = ij_pairs[up_idx]
+            up_idx = self.number_of_layers - i - 1
+            i, j = ij_pairs[up_idx-1]
             h = hs[up_idx]
             h_above = hs[up_idx - 1]
-            idx = down_outs[up_idx]
+            idx = down_outs[up_idx-1]
 
             h = self.push_info_down(h, h_above, idx, i, j)
             i, j = adj_m[up_idx - 1]

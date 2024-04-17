@@ -171,7 +171,7 @@ class UNet(nn.Module):
             # Do message passing flat and store features for skipped connections
             print("MP", h.shape, h.device)
             g = mp(g, h, c)
-            adj_m.append([g.edges[0], g.edges[1]])
+            adj_m.append([g.edges()[0], g.edges()[1]])
             s_l = g.ndata["s_l"]
             h_store = g.ndata["h"]
             hs.append(h_store)

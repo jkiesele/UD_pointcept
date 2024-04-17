@@ -113,7 +113,7 @@ class UNet(nn.Module):
                     k_in=num_neigh[ii],
                     n_layers=n_layers[ii],
                 )
-                for ii in range(self.number_of_layers - 2)
+                for ii in range(self.number_of_layers - 1)
             ]
         )
 

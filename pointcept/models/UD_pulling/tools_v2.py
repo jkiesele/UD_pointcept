@@ -50,7 +50,7 @@ class MP(nn.Module):
         # self.send_scores = SendScoresMessage()
         # self.find_up = FindUpPoints()
         self.sigmoid_scores = nn.Sigmoid()
-        self.funky_coordinate_space = True
+        self.funky_coordinate_space = False
         if self.funky_coordinate_space:
             self.embedding_coordinates = nn.Linear(
                 in_dim_node, 3
@@ -84,7 +84,6 @@ class MP(nn.Module):
         g = knn_per_graph(
             g, s_l, 16
         )  #! if these are learnt then they should be added to the gradients, they are not at the moment
-        g.ndata["h"] = h
 
         # 3) Message passing on the down graph SWIN3D_Blocks
         h = self.SWIN3D_Blocks(g, h)

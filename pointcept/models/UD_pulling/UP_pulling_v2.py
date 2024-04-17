@@ -188,11 +188,9 @@ class UNet(nn.Module):
         g, h = self.bottelneck(g, h, c)
         h_store = h
         hs.append(h_store)
-        print("leeeeen hs", len(hs))
         for layer_idx in range(self.number_of_layers - 1):
             up_idx = self.number_of_layers - layer_idx - 1
             i, j = ij_pairs[up_idx - 1]
-            print("used hs", up_idx)
             h = hs[up_idx]
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]
@@ -224,10 +222,10 @@ class UNet(nn.Module):
         # feed information back down averaging the information of the upcoming uppoints
         new_h = torch.zeros_like(h_above)
         new_h[idx] = h
-        g_connected_down = dgl.graph((j, i), num_nodes=new_h.shape[0])
-        g_connected_down.ndata["features"] = new_h
-        g_connected_down.update_all(fn.copy_u("features", "m"), fn.max("m", "h"))
-        h_up_down = g_connected_down.ndata["h"]
+        g_connected_up = dgl.graph((j, i), num_nodes=new_h.shape[0])
+        g_connected_up.ndata["features"] = new_h
+        g_connected_up.update_all(fn.copy_u("features", "m"), fn.max("m", "h"))
+        h_up_down = g_connected_up.ndata["h"]
         return h_up_down
 
 

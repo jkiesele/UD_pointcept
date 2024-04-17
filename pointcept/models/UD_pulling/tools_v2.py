@@ -20,14 +20,12 @@ from pointcept.models.UD_pulling.up_down_MP import (
 )
 
 
-class Swin3D(nn.Module):
+class MP(nn.Module):
     """MAIN block
     1) Find coordinates and score for the graph
     2) Do knn down graph
     3) Message passing on the down graph SWIN3D_Blocks
-    4) Downsample:
-            - find up points
-            - find neigh of from down to up
+
     """
 
     def __init__(
@@ -69,7 +67,6 @@ class Swin3D(nn.Module):
             self.residual,
             possible_empty=True,
         )
-        self.Downsample = Downsample_maxpull(hidden_dim, M)
 
     def forward(self, g, h, c):
         object = g.ndata["object"]
@@ -100,10 +97,73 @@ class Swin3D(nn.Module):
         # calculate loss of score
         # g.update_all(self.send_scores, self.find_up)
         # loss_ud = self.find_up.loss_ud
+        return g
 
+
+class MP_up(nn.Module):
+    """MAIN block
+    3) Message passing on flat graph SWIN3D_Blocks
+
+    """
+
+    def __init__(
+        self,
+        in_dim_node,
+        hidden_dim,
+        num_heads,
+        layer_norm,
+        batch_norm,
+        residual,
+        dropout,
+        M,
+        k_in,
+        n_layers,
+    ):
+        super().__init__()
+        self.k = k_in
+        self.layer_norm = layer_norm
+        self.batch_norm = batch_norm
+        self.residual = residual
+
+        self.SWIN3D_Blocks = SWIN3D_Blocks(
+            n_layers,
+            hidden_dim,
+            num_heads,
+            dropout,
+            self.layer_norm,
+            self.batch_norm,
+            self.residual,
+            possible_empty=True,
+        )
+
+    def forward(self, g):
+        h = g.ndata["h"]
+        # 3) Message passing on the down graph SWIN3D_Blocks
+        h = self.SWIN3D_Blocks(g)
+        g.ndata["h"] = h
+        return g
+
+
+class Downsample_block(nn.Module):
+    """
+    4) Downsample:
+            - find down points
+            - find neigh of from up to down
+    """
+
+    def __init__(
+        self,
+        hidden_dim,
+        M,
+    ):
+        super().__init__()
+
+        self.Downsample = Downsample_maxpull(hidden_dim, M)
+
+    def forward(self, g, h, c):
         # 4) Downsample:
         features, up_points, new_graphs_up, i, j = self.Downsample(g)
-        return features, up_points, new_graphs_up, i, j, s_l
+        return features, up_points, new_graphs_up, i, j
 
 
 class SWIN3D_Blocks(nn.Module):

@@ -204,7 +204,7 @@ class UNet(nn.Module):
             i, j = adj_m[up_idx - 1]
 
             print("MP up", h.shape, h.device)
-            g = dgl.graph((i, j), num_nodes=len(h_above))
+            g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
             g = self.message_passing_up[i](g)
 

@@ -188,11 +188,11 @@ class UNet(nn.Module):
         g, h = self.bottelneck(g, h, c)
         h_store = h
         hs.append(h_store)
-
+        print("leeeeen hs", len(hs))
         for layer_idx in range(self.number_of_layers - 1):
-
             up_idx = self.number_of_layers - layer_idx - 1
             i, j = ij_pairs[up_idx - 1]
+            print("used hs", up_idx)
             h = hs[up_idx]
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]

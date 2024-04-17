@@ -192,8 +192,8 @@ class UNet(nn.Module):
 
         for layer_idx in range(self.number_of_layers - 1):
 
-            print("starting up block", i)
-            up_idx = self.number_of_layers - i - 1
+            print("starting up block", layer_idx)
+            up_idx = self.number_of_layers - layer_idx - 1
             i, j = ij_pairs[up_idx - 1]
             h = hs[up_idx]
             print(h)

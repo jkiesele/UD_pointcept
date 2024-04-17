@@ -87,7 +87,7 @@ class MP(nn.Module):
         g.ndata["h"] = h
 
         # 3) Message passing on the down graph SWIN3D_Blocks
-        h = self.SWIN3D_Blocks(g)
+        h = self.SWIN3D_Blocks(g, h)
 
         g.ndata["scores"] = scores
         g.ndata["object"] = object
@@ -136,9 +136,9 @@ class MP_up(nn.Module):
             possible_empty=True,
         )
 
-    def forward(self, g):
+    def forward(self, g, h):
         # 3) Message passing on the down graph SWIN3D_Blocks
-        h = self.SWIN3D_Blocks(g)
+        h = self.SWIN3D_Blocks(g, h)
         g.ndata["h"] = h
         return g
 
@@ -201,8 +201,8 @@ class SWIN3D_Blocks(nn.Module):
             ]
         )
 
-    def forward(self, g):
-        h = g.ndata["h"]
+    def forward(self, g, h):
+        g.ndata["h"] = h
         for ii, conv in enumerate(self.layers_message_passing):
             h = conv(g, h)
         return h

@@ -200,7 +200,7 @@ class UNet(nn.Module):
             i, j = adj_m[up_idx - 1]
             g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
-            g = self.message_passing_up[layer_idx](g)
+            g = self.message_passing_up[layer_idx](g, h)
             # skipped connection
             h = g.ndata["h"] + h_above
 

@@ -173,7 +173,7 @@ class UNet(nn.Module):
         adj_m = []
         ij_pairs = []
         latest_depth_rep = []
-
+        coord_l = []
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
             g, h = mp(g, h, c)
@@ -181,6 +181,7 @@ class UNet(nn.Module):
             s_l = g.ndata["s_l"]
             h_store = h
             hs.append(h_store)
+            coord_l.append(c)
 
             # Go down one leve
             features, down_points, g, i, j = down(g)
@@ -205,7 +206,8 @@ class UNet(nn.Module):
             i, j = adj_m[up_idx - 1]
             g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
-            g, h = self.message_passing_up[layer_idx](g, h)
+            c = coord_l[up_idx - 1]
+            g, h = self.message_passing_up[layer_idx](g, h, c)
             # skipped connection
             h = h + h_above
 

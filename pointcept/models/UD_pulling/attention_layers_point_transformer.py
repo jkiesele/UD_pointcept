@@ -16,7 +16,7 @@ from torch.nn import Linear
 class GraphTransformerLayer(nn.Module):
     """
     Attention as in the point transformer: https://arxiv.org/pdf/2012.09164.pdf
-    Subtraction plus position encoding 
+    Subtraction plus position encoding
     """
 
     def __init__(
@@ -118,27 +118,24 @@ class MultiHeadAttentionLayer(nn.Module):
             self.K = nn.Linear(in_dim, out_dim * num_heads, bias=False)
             self.V = nn.Linear(in_dim, out_dim * num_heads, bias=False)
 
-        self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2 * num_heads)
+        self.FFN_layer1 = nn.Linear(in_dim, out_dim * 2 * num_heads)
         self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
         self.MLP_edge = MLP_edge(out_dim)
 
     def propagate_attention(self, g):
         # Compute attention score
-        g.apply_edges(self.MLP_edge) 
+        g.apply_edges(self.MLP_edge)
         g.apply_edges(scaled_exp("score", np.sqrt(self.out_dim)))
         # Send weighted values to target nodes
         eids = g.edges()
-        g.ndata["V_h_P_e"]=g.ndata["V_h"]+g.ndata["P_e"]
+        g.ndata["V_h_P_e"] = g.ndata["V_h"] + g.ndata["P_e"]
         g.send_and_recv(
             eids,
             fn.u_mul_e("V_h_P_e", "score", "V_h_P_e"),
-            fn.sum("V_h_P_e", "wV"),  
+            fn.sum("V_h_P_e", "wV"),
         )
 
-        g.send_and_recv(
-            eids, fn.copy_e("score", "score"), fn.sum("score", "z")
-        )  
-      
+        g.send_and_recv(eids, fn.copy_e("score", "score"), fn.sum("score", "z"))
 
     def forward(self, g, h):
 
@@ -173,7 +170,7 @@ class MultiHeadAttentionLayer(nn.Module):
 def src_dot_dst(src_field, dst_field, out_field):
     def func(edges):
         return {
-            out_field: (edges.src[src_field] - edges.dst[dst_field]+edges.src["P_e"])
+            out_field: (edges.src[src_field] - edges.dst[dst_field] + edges.src["P_e"])
         }
 
     return func
@@ -192,16 +189,16 @@ class MLP_edge(nn.Module):
     Compute the input feature from neighbors
     """
 
-    def __init__(self,  out_dim):
+    def __init__(self, out_dim):
         super(MLP_edge, self).__init__()
         self.MLP = nn.Sequential(
-            nn.Linear(out_dim, out_dim),  
+            nn.Linear(out_dim, out_dim),
             nn.ReLU(),
-            nn.Linear(out_dim, 1), 
+            nn.Linear(out_dim, 1),
         )
 
     def forward(self, edges):
-        dif =edges.src["K_h"] - edges.dst["Q_h"]+edges.src["P_e"]
+        dif = edges.src["K_h"] - edges.dst["Q_h"] + edges.src["P_e"]
         att_weight = self.MLP(dif)
 
         return {"score": att_weight}

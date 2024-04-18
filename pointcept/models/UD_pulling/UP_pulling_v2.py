@@ -191,7 +191,7 @@ class UNet(nn.Module):
         for layer_idx in range(self.number_of_layers - 1):
             up_idx = self.number_of_layers - layer_idx - 1
             i, j = ij_pairs[up_idx - 1]
-            h = hs[up_idx]
+            # h = hs[up_idx]
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]
             h = self.push_info_up(h, h_above, idx, i, j)

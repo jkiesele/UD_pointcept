@@ -20,6 +20,7 @@ from pointcept.models.UD_pulling.up_down_MP import (
     MLP_difs_softmax,
     MLP_difs_maxpool,
 )
+import pointops
 
 
 class MP(nn.Module):
@@ -436,9 +437,13 @@ class Downsample_maxpull(nn.Module):
             scores_i = graph_i.ndata["scores"].view(-1)
             device = scores_i.device
             number_up = np.floor(number_nodes_graph * 0.25).astype(int)
-            up_points_i_index = torch.flip(torch.sort(scores_i, dim=0)[1], [0])[
-                0:number_up
-            ]
+            # up_points_i_index = torch.flip(torch.sort(scores_i, dim=0)[1], [0])[
+            #     0:number_up
+            # ]
+            # Use farthest point sampling
+            n_o = torch.cuda.IntTensor(number_up)
+            o = torch.cuda.IntTensor(number_nodes_graph)
+            up_points_i_index = pointops.farthest_point_sampling(s_l_i, o, n_o)
             up_points_i = torch.zeros_like(scores_i)
             up_points_i[up_points_i_index.long()] = 1
             up_points_i = up_points_i.bool()

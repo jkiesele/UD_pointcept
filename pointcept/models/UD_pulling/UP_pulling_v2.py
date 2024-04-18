@@ -51,7 +51,7 @@ class UNet(nn.Module):
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
-        self.number_of_layers = 6
+        self.number_of_layers = 3
         self.num_classes = 13
         num_neigh = [
             16,
@@ -101,10 +101,7 @@ class UNet(nn.Module):
         )
 
         self.extend_blocks = nn.ModuleList(
-            [
-                Push_info_up(hidden_dim)
-                for ii in range(self.number_of_layers - 1)
-            ]
+            [Push_info_up(hidden_dim) for ii in range(self.number_of_layers - 1)]
         )
         n_layers = [2, 2, 2, 2, 2, 2]
         self.message_passing_up = nn.ModuleList(
@@ -225,8 +222,6 @@ class UNet(nn.Module):
             )
         self.step_count = self.step_count + 1
         return h_out  # , losses / self.number_of_layers
-
-
 
 
 def build_graph(batch, coord):

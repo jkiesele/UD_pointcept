@@ -44,7 +44,7 @@ class Concat_MLP_Aggregation(nn.Module):
     """
 
     def __init__(self, out_dim):
-        super(MeanMax_aggregation, self).__init__()
+        super(Concat_MLP_Aggregation, self).__init__()
         self.FFC1 = nn.Linear(out_dim * 5, out_dim)
         self.FFC2 = nn.Linear(out_dim, out_dim)
 

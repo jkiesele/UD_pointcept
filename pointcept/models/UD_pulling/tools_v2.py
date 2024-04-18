@@ -443,7 +443,7 @@ class Downsample_maxpull(nn.Module):
             # Use farthest point sampling
             n_o = torch.cuda.IntTensor(number_up)
             o = torch.cuda.IntTensor(number_nodes_graph)
-            print(s_l_i.shape, n_o.shape, o.shape)
+            print("shapes are", s_l_i.shape, n_o, o)
             up_points_i_index = pointops.farthest_point_sampling(s_l_i, o, n_o)
             print(up_points_i_index)
             up_points_i = torch.zeros_like(scores_i)

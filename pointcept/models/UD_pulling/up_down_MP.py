@@ -51,9 +51,9 @@ class Concat_MLP_Aggregation(nn.Module):
 
     def forward(self, nodes):
         concat_neigh_h = nodes.mailbox["m"].view(-1, self.out_dim * 5)
-        h = self.FCC1(concat_neigh_h)
+        h = self.FFC1(concat_neigh_h)
         h = F.relu(h)
-        h = self.FCC2(h)
+        h = self.FFC2(h)
         return {"h_up_down": h}
 
 

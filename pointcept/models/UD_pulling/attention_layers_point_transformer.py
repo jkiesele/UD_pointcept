@@ -68,7 +68,6 @@ class GraphTransformerLayer(nn.Module):
         h_in1 = h  # for first residual connection
         attn_out = self.attention(g, h, c)
         h = attn_out.view(-1, self.out_channels)
-        print("h attention", h)
         # h = F.dropout(h, self.dropout, training=self.training)
 
         h = self.O(h)
@@ -122,9 +121,9 @@ class MultiHeadAttentionLayer(nn.Module):
         # self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
 
         self.linear_p = nn.Sequential(
-            nn.Linear(3, 3),
+            nn.Linear(3, 3 * num_heads),
             nn.ReLU(inplace=True),
-            nn.Linear(3, out_dim),
+            nn.Linear(3 * num_heads, out_dim * num_heads),
         )
 
         self.MLP_edge = MLP_edge(out_dim)

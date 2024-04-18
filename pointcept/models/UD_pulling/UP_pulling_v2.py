@@ -113,8 +113,8 @@ class UNet(nn.Module):
         self.message_passing_up = nn.ModuleList(
             [
                 MP_up(
-                    in_dim_node=planes[len(planes) - ii - 1],
-                    hidden_dim=planes[len(planes) - ii - 1],
+                    in_dim_node=planes[len(planes) - ii - 2],
+                    hidden_dim=planes[len(planes) - ii - 2],
                     num_heads=num_heads,
                     layer_norm=self.layer_norm,
                     batch_norm=self.batch_norm,
@@ -128,7 +128,7 @@ class UNet(nn.Module):
             ]
         )
 
-        out_dim = hidden_dim
+        out_dim = 32
         self.n_postgn_dense_blocks = 3
         postgn_dense_modules = nn.ModuleList()
         for i in range(self.n_postgn_dense_blocks):

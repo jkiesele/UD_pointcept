@@ -27,7 +27,7 @@ class Push_info_up(nn.Module):
 
     def forward(self, h, h_above, idx, i, j):
         # feed information back down averaging the information of the upcoming uppoints
-        new_h = torch.zeros_like(h_above)
+        new_h = torch.zeros((h_above.shape[0], h.shape[1])).to(h.device)
         new_h[idx] = h
         g_connected_up = dgl.graph((j, i), num_nodes=new_h.shape[0])
         g_connected_up.ndata["features"] = new_h

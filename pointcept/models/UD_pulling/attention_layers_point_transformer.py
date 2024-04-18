@@ -118,8 +118,8 @@ class MultiHeadAttentionLayer(nn.Module):
             self.K = nn.Linear(in_dim, out_dim * num_heads, bias=False)
             self.V = nn.Linear(in_dim, out_dim * num_heads, bias=False)
 
-        self.FFN_layer1 = nn.Linear(in_dim, out_dim * 2 * num_heads)
-        self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
+        # self.FFN_layer1 = nn.Linear(in_dim, out_dim * 2 * num_heads)
+        # self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
 
         self.linear_p = nn.Sequential(
             nn.Linear(3, 3),

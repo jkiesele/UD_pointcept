@@ -127,12 +127,14 @@ class UNet(nn.Module):
                 for ii in range(self.number_of_layers - 1)
             ]
         )
+
+        out_dim = 32
         self.n_postgn_dense_blocks = 3
         self.cls = nn.Sequential(
             nn.Linear(planes[0], planes[0]),
             nn.BatchNorm1d(planes[0]),
             nn.ReLU(inplace=True),
-            nn.Linear(planes[0], 13),
+            nn.Linear(planes[0], 13, bias=False),
         )
 
         self.step_count = 0

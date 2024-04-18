@@ -45,7 +45,7 @@ class UNet(nn.Module):
         }
         self.act = acts[activation]
         in_dim_node = 6
-        num_heads = 1
+        num_heads = 4
         hidden_dim = 32
         self.layer_norm = False
         self.batch_norm = True

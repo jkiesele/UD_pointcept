@@ -46,58 +46,19 @@ class GraphTransformerLayer(nn.Module):
             in_dim, out_dim // num_heads, num_heads, use_bias, possible_empty
         )
 
-        self.O = nn.Linear(out_dim, out_dim)
-
-        # if self.layer_norm:
-        #     self.layer_norm1 = nn.LayerNorm(out_dim)
-
-        # if self.batch_norm:
-        #     self.batch_norm1 = nn.BatchNorm1d(out_dim)
-
-        # # FFN
-        # self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
-        # self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
-
-        # if self.layer_norm:
-        #     self.layer_norm2 = nn.LayerNorm(out_dim)
-
-        # if self.batch_norm:
-        #     self.batch_norm2 = nn.BatchNorm1d(out_dim)
+        self.bn2 = nn.BatchNorm1d(out_dim)
+        self.bn3 = nn.BatchNorm1d(out_dim)
+        self.linear3 = nn.Linear(out_dim, out_dim, bias=False)
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, g, h, c):
         h_in1 = h  # for first residual connection
         attn_out = self.attention(g, h, c)
         h = attn_out.view(-1, self.out_channels)
-        # h = F.dropout(h, self.dropout, training=self.training)
-
-        h = self.O(h)
-        # print("h attention 1", h)
-        # if self.residual:
-        #     h = h_in1 + h  # residual connection
-
-        # if self.layer_norm:
-        #     h = self.layer_norm1(h)
-
-        # if self.batch_norm:
-        #     h = self.batch_norm1(h)
-
-        # h_in2 = h  # for second residual connection
-
-        # # FFN
-        # h = self.FFN_layer1(h)
-        # h = F.relu(h)
-        # h = F.dropout(h, self.dropout, training=self.training)
-        # h = self.FFN_layer2(h)
-
-        # if self.residual:
-        #     h = h_in2 + h  # residual connection
-
-        # if self.layer_norm:
-        #     h = self.layer_norm2(h)
-
-        # if self.batch_norm:
-        #     h = self.batch_norm2(h)
-        # # print("h attention final", h)
+        h = self.relu(self.bn2(h))
+        h = self.bn3(self.linear3(h))
+        h = h + h_in1
+        h = self.relu(h)
         return h
 
 

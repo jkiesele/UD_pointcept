@@ -154,12 +154,13 @@ class Downsample_block(nn.Module):
 
     def __init__(
         self,
-        hidden_dim,
+        in_planes, 
+        out_planes,
         M,
     ):
         super().__init__()
 
-        self.Downsample = Downsample_maxpull(hidden_dim, M)
+        self.Downsample = Downsample_maxpull(in_planes,out_planes,  M)
 
     def forward(self, g):
         # 4) Downsample:
@@ -415,11 +416,11 @@ class Downsample_maxpull(nn.Module):
     Maxpulling as in the Point transformer as well
     """
 
-    def __init__(self, hidden_dim, M):
+    def __init__(self, in_planes, out_planes, M):
         super().__init__()
         self.M = M
-        self.embedding_features_to_att = nn.Linear(hidden_dim + 3, hidden_dim)
-        self.MLP_difs = MLP_difs_maxpool(hidden_dim, hidden_dim)
+        self.embedding_features_to_att = nn.Linear(in_planes + 3, in_planes)
+        self.MLP_difs = MLP_difs_maxpool(in_planes, out_planes)
 
     def forward(self, g):
         features = g.ndata["h"]
@@ -443,9 +444,7 @@ class Downsample_maxpull(nn.Module):
             # Use farthest point sampling
             n_o = torch.cuda.IntTensor([number_up])
             o = torch.cuda.IntTensor([number_nodes_graph])
-            print("shapes are", s_l_i.shape, n_o, o)
             up_points_i_index = pointops.farthest_point_sampling(s_l_i, o, n_o)
-            print(up_points_i_index)
             up_points_i = torch.zeros_like(scores_i)
             up_points_i[up_points_i_index.long()] = 1
             up_points_i = up_points_i.bool()

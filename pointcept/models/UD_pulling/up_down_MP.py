@@ -20,10 +20,10 @@ class Push_info_up(nn.Module):
 
     """
 
-    def __init__(self, out_dim):
+    def __init__(self, in_planes, out_planes):
         super().__init__()
-        self.out_dim = out_dim
-        self.Concat_MLP_Aggregation = Concat_MLP_Aggregation(out_dim)
+        self.in_planes = in_planes
+        self.Concat_MLP_Aggregation = Concat_MLP_Aggregation(in_planes, out_planes)
 
     def forward(self, h, h_above, idx, i, j):
         # feed information back down averaging the information of the upcoming uppoints
@@ -43,11 +43,11 @@ class Concat_MLP_Aggregation(nn.Module):
     Feature aggregation in a DGL graph
     """
 
-    def __init__(self, out_dim):
+    def __init__(self, in_planes, out_planes):
         super(Concat_MLP_Aggregation, self).__init__()
-        self.out_dim = out_dim
-        self.FFC1 = nn.Linear(out_dim * 5, out_dim)
-        self.FFC2 = nn.Linear(out_dim, out_dim)
+        self.out_dim = in_planes
+        self.FFC1 = nn.Linear(in_planes * 5, out_planes)
+        self.FFC2 = nn.Linear(out_planes, out_planes)
 
     def forward(self, nodes):
         concat_neigh_h = nodes.mailbox["m"].view(-1, self.out_dim * 5)
@@ -276,16 +276,16 @@ class EdgePassing(nn.Module):
 
     def __init__(self, in_dim, out_dim):
         super(EdgePassing, self).__init__()
-        # self.MLP = nn.Sequential(
-        #     nn.Linear(in_dim, out_dim),  #! Dense 3
-        #     nn.ReLU(),
-        #     nn.Linear(out_dim, 1),  #! Dense 4
-        #     nn.ReLU(),
-        # )
+        self.MLP = nn.Sequential(
+            nn.Linear(in_dim, out_dim),  #! Dense 3
+            nn.ReLU(),
+            nn.Linear(out_dim, 1),  #! Dense 4
+            nn.ReLU(),
+        )
 
     def forward(self, edges):
         dif = edges.src["features"]
-        # att_weight = self.MLP(dif)
+        dif = self.MLP(dif)
         # att_weight = torch.sigmoid(att_weight)  #! try sigmoid
         # feature = att_weight * edges.src["features"]
         return {"feature_n": dif}

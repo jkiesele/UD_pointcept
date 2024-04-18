@@ -48,57 +48,57 @@ class GraphTransformerLayer(nn.Module):
 
         self.O = nn.Linear(out_dim, out_dim)
 
-        if self.layer_norm:
-            self.layer_norm1 = nn.LayerNorm(out_dim)
+        # if self.layer_norm:
+        #     self.layer_norm1 = nn.LayerNorm(out_dim)
 
-        if self.batch_norm:
-            self.batch_norm1 = nn.BatchNorm1d(out_dim)
+        # if self.batch_norm:
+        #     self.batch_norm1 = nn.BatchNorm1d(out_dim)
 
-        # FFN
-        self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
-        self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
+        # # FFN
+        # self.FFN_layer1 = nn.Linear(out_dim, out_dim * 2)
+        # self.FFN_layer2 = nn.Linear(out_dim * 2, out_dim)
 
-        if self.layer_norm:
-            self.layer_norm2 = nn.LayerNorm(out_dim)
+        # if self.layer_norm:
+        #     self.layer_norm2 = nn.LayerNorm(out_dim)
 
-        if self.batch_norm:
-            self.batch_norm2 = nn.BatchNorm1d(out_dim)
+        # if self.batch_norm:
+        #     self.batch_norm2 = nn.BatchNorm1d(out_dim)
 
     def forward(self, g, h, c):
         h_in1 = h  # for first residual connection
         attn_out = self.attention(g, h, c)
         h = attn_out.view(-1, self.out_channels)
-        # print("h attention", h)
-        h = F.dropout(h, self.dropout, training=self.training)
+        print("h attention", h)
+        # h = F.dropout(h, self.dropout, training=self.training)
 
         h = self.O(h)
         # print("h attention 1", h)
-        if self.residual:
-            h = h_in1 + h  # residual connection
+        # if self.residual:
+        #     h = h_in1 + h  # residual connection
 
-        if self.layer_norm:
-            h = self.layer_norm1(h)
+        # if self.layer_norm:
+        #     h = self.layer_norm1(h)
 
-        if self.batch_norm:
-            h = self.batch_norm1(h)
+        # if self.batch_norm:
+        #     h = self.batch_norm1(h)
 
-        h_in2 = h  # for second residual connection
+        # h_in2 = h  # for second residual connection
 
-        # FFN
-        h = self.FFN_layer1(h)
-        h = F.relu(h)
-        h = F.dropout(h, self.dropout, training=self.training)
-        h = self.FFN_layer2(h)
+        # # FFN
+        # h = self.FFN_layer1(h)
+        # h = F.relu(h)
+        # h = F.dropout(h, self.dropout, training=self.training)
+        # h = self.FFN_layer2(h)
 
-        if self.residual:
-            h = h_in2 + h  # residual connection
+        # if self.residual:
+        #     h = h_in2 + h  # residual connection
 
-        if self.layer_norm:
-            h = self.layer_norm2(h)
+        # if self.layer_norm:
+        #     h = self.layer_norm2(h)
 
-        if self.batch_norm:
-            h = self.batch_norm2(h)
-        # print("h attention final", h)
+        # if self.batch_norm:
+        #     h = self.batch_norm2(h)
+        # # print("h attention final", h)
         return h
 
 
@@ -121,13 +121,11 @@ class MultiHeadAttentionLayer(nn.Module):
         self.FFN_layer1 = nn.Linear(in_dim, out_dim * 2 * num_heads)
         self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
 
-
         self.linear_p = nn.Sequential(
             nn.Linear(3, 3),
             nn.ReLU(inplace=True),
             nn.Linear(3, out_dim),
         )
-
 
         self.MLP_edge = MLP_edge(out_dim)
 

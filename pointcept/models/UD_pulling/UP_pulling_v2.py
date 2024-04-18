@@ -45,7 +45,7 @@ class UNet(nn.Module):
         }
         self.act = acts[activation]
         in_dim_node = 6
-        num_heads = 8
+        num_heads = 1
         hidden_dim = 32
         self.layer_norm = False
         self.batch_norm = True
@@ -130,17 +130,13 @@ class UNet(nn.Module):
 
         out_dim = 32
         self.n_postgn_dense_blocks = 3
-        postgn_dense_modules = nn.ModuleList()
-        for i in range(self.n_postgn_dense_blocks):
-            postgn_dense_modules.extend(
-                [
-                    nn.Linear(out_dim if i == 0 else 64, 64),
-                    self.act,  # ,
-                ]
-            )
-        self.postgn_dense = nn.Sequential(*postgn_dense_modules)
-        self.clustering = nn.Linear(64, 13, bias=False)
-        self.ScaledGooeyBatchNorm2_2 = nn.BatchNorm1d(64, momentum=0.1)
+        self.cls = nn.Sequential(
+            nn.Linear(planes[0], planes[0]),
+            nn.BatchNorm1d(planes[0]),
+            nn.ReLU(inplace=True),
+            nn.Linear(planes[0], 13),
+        )
+
         self.step_count = 0
 
     def forward(self, data_dict):
@@ -180,18 +176,14 @@ class UNet(nn.Module):
 
         for l, (mp, down) in enumerate(zip(self.message_passing, self.contract_blocks)):
             # Do message passing flat and store features for skipped connections
-            print("h MP in ", l, h.shape)
             g, h = mp(g, h, c)
-            print("h MP out", l, h.shape)
             adj_m.append([g.edges()[0], g.edges()[1]])
             s_l = g.ndata["s_l"]
             h_store = h
             hs.append(h_store)
 
-            # Go down one level
-            print("down in ", l, g.ndata["h"].shape)
+            # Go down one leve
             features, down_points, g, i, j = down(g)
-            print("down out ", l, features.shape)
             c = s_l
             down_points = down_points.view(-1)
             ij_pairs.append([i, j])
@@ -200,9 +192,7 @@ class UNet(nn.Module):
             c = c[down_points]
             depth_label = depth_label + 1
 
-        print("bottelneck in ", h.shape)
         g, h = self.bottelneck(g, h, c)
-        print("bottelneck out ", h.shape)
         h_store = h
         hs.append(h_store)
         for layer_idx in range(self.number_of_layers - 1):
@@ -211,9 +201,7 @@ class UNet(nn.Module):
             # h = hs[up_idx]
             h_above = hs[up_idx - 1]
             idx = down_outs[up_idx - 1]
-            print("extend blocks in", layer_idx, h.shape)
             h = self.extend_blocks[layer_idx](h, h_above, idx, i, j)
-            print("extend blocks out", layer_idx, h.shape)
             i, j = adj_m[up_idx - 1]
             g = dgl.graph((i, j), num_nodes=h.shape[0])
             g.ndata["h"] = h
@@ -221,9 +209,7 @@ class UNet(nn.Module):
             # skipped connection
             h = h + h_above
 
-        x = self.postgn_dense(h)
-        x = self.ScaledGooeyBatchNorm2_2(x)
-        h_out = self.clustering(x)
+        h_out = self.cls(h)
         g1.ndata["final_clustering"] = torch.argmax(h_out, dim=1)
         if comm.get_local_rank() == 0 and self.step_count % 100 == 0:
             PlotCoordinates(

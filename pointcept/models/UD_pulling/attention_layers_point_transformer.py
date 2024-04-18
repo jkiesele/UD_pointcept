@@ -64,9 +64,9 @@ class GraphTransformerLayer(nn.Module):
         if self.batch_norm:
             self.batch_norm2 = nn.BatchNorm1d(out_dim)
 
-    def forward(self, g, h):
+    def forward(self, g, h, c):
         h_in1 = h  # for first residual connection
-        attn_out = self.attention(g, h)
+        attn_out = self.attention(g, h, c)
         h = attn_out.view(-1, self.out_channels)
         # print("h attention", h)
         h = F.dropout(h, self.dropout, training=self.training)
@@ -120,6 +120,15 @@ class MultiHeadAttentionLayer(nn.Module):
 
         self.FFN_layer1 = nn.Linear(in_dim, out_dim * 2 * num_heads)
         self.FFN_layer2 = nn.Linear(out_dim * 2 * num_heads, out_dim * num_heads)
+
+
+        self.linear_p = nn.Sequential(
+            nn.Linear(3, 3),
+            nn.ReLU(inplace=True),
+            nn.Linear(3, out_dim),
+        )
+
+
         self.MLP_edge = MLP_edge(out_dim)
 
     def propagate_attention(self, g):
@@ -137,14 +146,13 @@ class MultiHeadAttentionLayer(nn.Module):
 
         g.send_and_recv(eids, fn.copy_e("score", "score"), fn.sum("score", "z"))
 
-    def forward(self, g, h):
+    def forward(self, g, h, c):
 
         Q_h = self.Q(h)
         K_h = self.K(h)
         V_h = self.V(h)
-        position_encoding = self.FFN_layer1(h)
-        position_encoding = F.relu(position_encoding)
-        position_encoding = self.FFN_layer2(position_encoding)
+        position_encoding = self.linear_p(c)
+
         # Reshaping into [num_nodes, num_heads, feat_dim] to
         # get projections for multi-head attention
         g.ndata["Q_h"] = Q_h.view(-1, self.num_heads, self.out_dim)

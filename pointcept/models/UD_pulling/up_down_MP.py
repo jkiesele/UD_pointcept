@@ -278,9 +278,10 @@ class EdgePassing(nn.Module):
         super(EdgePassing, self).__init__()
         self.MLP = nn.Sequential(
             nn.Linear(in_dim, out_dim),  #! Dense 3
+            nn.BatchNorm1d(out_dim), 
             nn.ReLU(),
-            nn.Linear(out_dim, out_dim),  #! Dense 4
-            nn.ReLU(),
+            # nn.Linear(out_dim, out_dim),  #! Dense 4
+            # nn.ReLU(),
         )
 
     def forward(self, edges):

@@ -59,7 +59,9 @@ class MP(nn.Module):
                 in_dim_node, 3
             )  # node feat is an integer
         self.M = M  # number of points up to connect to
-        self.embedding_h = nn.Linear(in_dim_node, hidden_dim)
+        self.linear1 = nn.Linear(in_dim_node, hidden_dim, bias=False)
+        self.bn1 = nn.BatchNorm1d(hidden_dim)
+        self.relu = nn.ReLU(inplace=True)
         self.SWIN3D_Blocks = SWIN3D_Blocks(
             n_layers,
             hidden_dim,
@@ -79,7 +81,7 @@ class MP(nn.Module):
             s_l = self.embedding_coordinates(h)
         else:
             s_l = c
-        h = self.embedding_h(h)
+        h = self.relu(self.bn1(self.linear1(h)))
         scores = torch.rand(h.shape[0]).to(h.device)
 
         # 2) Do knn down graph
@@ -89,7 +91,7 @@ class MP(nn.Module):
         )  #! if these are learnt then they should be added to the gradients, they are not at the moment
 
         # 3) Message passing on the down graph SWIN3D_Blocks
-        h = self.SWIN3D_Blocks(g, h)
+        h = self.SWIN3D_Blocks(g, h, c)
 
         g.ndata["scores"] = scores
         g.ndata["object"] = object
@@ -204,10 +206,10 @@ class SWIN3D_Blocks(nn.Module):
             ]
         )
 
-    def forward(self, g, h):
+    def forward(self, g, h, c):
         g.ndata["h"] = h
         for ii, conv in enumerate(self.layers_message_passing):
-            h = conv(g, h)
+            h = conv(g, h, c)
         return h
 
 
@@ -419,7 +421,7 @@ class Downsample_maxpull(nn.Module):
     def __init__(self, in_planes, out_planes, M):
         super().__init__()
         self.M = M
-        self.embedding_features_to_att = nn.Linear(in_planes + 3, in_planes)
+        # self.embedding_features_to_att = nn.Linear(in_planes + 3, in_planes)
         self.MLP_difs = MLP_difs_maxpool(in_planes, out_planes)
 
     def forward(self, g):
@@ -491,8 +493,8 @@ class Downsample_maxpull(nn.Module):
         i, j = graphs_UD.edges()
         graphs_U = dgl.batch(graphs_U)
         # naive way of giving the coordinates gradients
-        features = torch.cat((features, s_l), dim=1)
-        features = self.embedding_features_to_att(features)
+        # features = torch.cat((features, s_l), dim=1)
+        # features = self.embedding_features_to_att(features)
 
         # do attention in g connected to up, this features have only been updated for points that have neighbourgs pointing to them: up-points
         features = self.MLP_difs(graphs_UD, features)

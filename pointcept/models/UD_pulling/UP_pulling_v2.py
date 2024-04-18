@@ -91,7 +91,7 @@ class UNet(nn.Module):
             residual=self.residual,
             dropout=dropout,
             M=0.25,
-            k_in=num_neigh[self.number_of_layers - 1],
+            k_in=16,
             n_layers=n_layers[self.number_of_layers - 1],
         )
         self.contract_blocks = nn.ModuleList(

@@ -105,7 +105,7 @@ class UNet(nn.Module):
 
         self.extend_blocks = nn.ModuleList(
             [
-                Push_info_up(planes[len(planes) - ii], planes[len(planes) - ii - 1])
+                Push_info_up(planes[len(planes) - ii - 1], planes[len(planes) - ii - 2])
                 for ii in range(self.number_of_layers - 1)
             ]
         )

@@ -279,7 +279,7 @@ class EdgePassing(nn.Module):
         self.MLP = nn.Sequential(
             nn.Linear(in_dim, out_dim),  #! Dense 3
             nn.ReLU(),
-            nn.Linear(out_dim, 1),  #! Dense 4
+            nn.Linear(out_dim, out_dim),  #! Dense 4
             nn.ReLU(),
         )
 

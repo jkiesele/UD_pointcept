@@ -17,6 +17,10 @@ class GraphTransformerLayer(nn.Module):
     """
     Attention as in the point transformer: https://arxiv.org/pdf/2012.09164.pdf
     Subtraction plus position encoding
+    Takes care of point transformer and the
+    x = self.bn3(self.linear3(x))
+    x += identity
+    x = self.relu(x)
     """
 
     def __init__(

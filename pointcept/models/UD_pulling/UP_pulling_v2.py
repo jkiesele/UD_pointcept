@@ -82,6 +82,8 @@ class UNet(nn.Module):
                 for ii in range(self.number_of_layers - 1)
             ]
         )
+
+        # same as Bottleneck
         self.bottelneck = MP(
             in_dim_node=planes[-1],
             hidden_dim=planes[-1],
@@ -94,6 +96,8 @@ class UNet(nn.Module):
             k_in=16,
             n_layers=n_layers[self.number_of_layers - 1],
         )
+
+        # same as TransitionDown(point transformer)
         self.contract_blocks = nn.ModuleList(
             [
                 Downsample_block(

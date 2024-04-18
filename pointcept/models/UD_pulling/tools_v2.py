@@ -12,7 +12,9 @@ import torch_cmspepr
 from torch import Tensor
 from torch.nn import Linear
 from dgl.nn import EdgeWeightNorm, GraphConv
-from pointcept.models.UD_pulling.attention_layers import GraphTransformerLayer
+from pointcept.models.UD_pulling.attention_layers_point_transformer import (
+    GraphTransformerLayer,
+)
 from pointcept.models.UD_pulling.up_down_MP import (
     MLP_difs,
     MLP_difs_softmax,
@@ -139,13 +141,13 @@ class MP_up(nn.Module):
         # 3) Message passing on the down graph SWIN3D_Blocks
         h = self.SWIN3D_Blocks(g, h)
         g.ndata["h"] = h
-        return g, h 
+        return g, h
 
 
 class Downsample_block(nn.Module):
     """
     4) Downsample:
-            - find down points
+            - find down points (currently random score)
             - find neigh of from up to down
     """
 
@@ -409,6 +411,7 @@ class Downsample_maxpull(nn.Module):
     """Point 4)
     - find up points
     - find neigh of from down to up
+    Maxpulling as in the Point transformer as well
     """
 
     def __init__(self, hidden_dim, M):

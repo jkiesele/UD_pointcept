@@ -24,6 +24,7 @@ import pointops
 from pointcept.models.builder import MODELS
 from pointcept.models.utils import offset2batch, batch2offset
 from pointcept.models.UD_pulling.tools_v2 import MP, MP_up, Downsample_block, MLPReadout
+from pointcept.models.UD_pulling.up_down_MP import Push_info_up
 from pointcept.models.UD_pulling.plotting_tools import PlotCoordinates
 from pointcept.models.utils import offset2batch, batch2offset
 import torch_cmspepr
@@ -50,14 +51,14 @@ class UNet(nn.Module):
         self.batch_norm = True
         self.residual = True
         dropout = 0.05
-        self.number_of_layers = 3
+        self.number_of_layers = 6
         self.num_classes = 13
         num_neigh = [
             16,
             16,
             16,
         ]
-        n_layers = [2, 4, 4]
+        n_layers = [2, 2, 2, 2, 2, 2]
         self.embedding_h = nn.Sequential(
             nn.Linear(in_dim_node, hidden_dim, bias=False),
             nn.BatchNorm1d(hidden_dim),
@@ -73,7 +74,7 @@ class UNet(nn.Module):
                     batch_norm=self.batch_norm,
                     residual=self.residual,
                     dropout=dropout,
-                    M=0.5,
+                    M=0.25,
                     k_in=num_neigh[ii],
                     n_layers=n_layers[ii],
                 )
@@ -88,17 +89,24 @@ class UNet(nn.Module):
             batch_norm=self.batch_norm,
             residual=self.residual,
             dropout=dropout,
-            M=0.5,
+            M=0.25,
             k_in=num_neigh[self.number_of_layers - 1],
             n_layers=n_layers[self.number_of_layers - 1],
         )
         self.contract_blocks = nn.ModuleList(
             [
-                Downsample_block(hidden_dim=hidden_dim, M=0.5)
+                Downsample_block(hidden_dim=hidden_dim, M=0.25)
                 for ii in range(self.number_of_layers - 1)
             ]
         )
-        n_layers = [4, 2]
+
+        self.extend_blocks = nn.ModuleList(
+            [
+                Push_info_up(hidden_dim)
+                for ii in range(self.number_of_layers - 1)
+            ]
+        )
+        n_layers = [2, 2, 2, 2, 2, 2]
         self.message_passing_up = nn.ModuleList(
             [
                 MP_up(
@@ -109,7 +117,7 @@ class UNet(nn.Module):
                     batch_norm=self.batch_norm,
                     residual=self.residual,
                     dropout=dropout,
-                    M=0.5,
+                    M=0.25,
                     k_in=num_neigh[ii],
                     n_layers=n_layers[ii],
                 )
@@ -218,15 +226,7 @@ class UNet(nn.Module):
         self.step_count = self.step_count + 1
         return h_out  # , losses / self.number_of_layers
 
-    def push_info_up(self, h, h_above, idx, i, j):
-        # feed information back down averaging the information of the upcoming uppoints
-        new_h = torch.zeros_like(h_above)
-        new_h[idx] = h
-        g_connected_up = dgl.graph((j, i), num_nodes=new_h.shape[0])
-        g_connected_up.ndata["features"] = new_h
-        g_connected_up.update_all(fn.copy_u("features", "m"), fn.max("m", "h"))
-        h_up_down = g_connected_up.ndata["h"]
-        return h_up_down
+
 
 
 def build_graph(batch, coord):

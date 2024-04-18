@@ -14,6 +14,48 @@ from torch.nn import Linear
 from dgl.nn import EdgeWeightNorm, GraphConv
 
 
+class Push_info_up(nn.Module):
+    """
+    Every down node is connected to 5 up nodes
+
+    """
+
+    def __init__(self, out_dim):
+        super().__init__()
+        self.out_dim = out_dim
+        self.Concat_MLP_Aggregation = Concat_MLP_Aggregation(out_dim)
+
+    def forward(self, h, h_above, idx, i, j):
+        # feed information back down averaging the information of the upcoming uppoints
+        new_h = torch.zeros_like(h_above)
+        new_h[idx] = h
+        g_connected_up = dgl.graph((j, i), num_nodes=new_h.shape[0])
+        g_connected_up.ndata["features"] = new_h
+        g_connected_up.update_all(
+            fn.copy_u("features", "m"), self.Concat_MLP_Aggregation
+        )
+        h_up_down = g_connected_up.ndata["h_up_down"]
+        return h_up_down
+
+
+class Concat_MLP_Aggregation(nn.Module):
+    """
+    Feature aggregation in a DGL graph
+    """
+
+    def __init__(self, out_dim):
+        super(MeanMax_aggregation, self).__init__()
+        self.FFC1 = nn.Linear(out_dim * 5, out_dim)
+        self.FFC2 = nn.Linear(out_dim, out_dim)
+
+    def forward(self, nodes):
+        concat_neigh_h = nodes.mailbox["m"].view(-1, self.out_dim * 5)
+        h = self.FCC1(concat_neigh_h)
+        h = F.relu(h)
+        h = self.FCC2(h)
+        return {"h_up_down": h}
+
+
 class MLP_difs_softmax(nn.Module):
     """
     Param:

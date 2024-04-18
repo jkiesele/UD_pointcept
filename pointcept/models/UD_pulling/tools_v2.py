@@ -140,9 +140,9 @@ class MP_up(nn.Module):
             possible_empty=True,
         )
 
-    def forward(self, g, h):
+    def forward(self, g, h, c):
         # 3) Message passing on the down graph SWIN3D_Blocks
-        h = self.SWIN3D_Blocks(g, h)
+        h = self.SWIN3D_Blocks(g, h, c)
         g.ndata["h"] = h
         return g, h
 
@@ -156,13 +156,13 @@ class Downsample_block(nn.Module):
 
     def __init__(
         self,
-        in_planes, 
+        in_planes,
         out_planes,
         M,
     ):
         super().__init__()
 
-        self.Downsample = Downsample_maxpull(in_planes,out_planes,  M)
+        self.Downsample = Downsample_maxpull(in_planes, out_planes, M)
 
     def forward(self, g):
         # 4) Downsample:
